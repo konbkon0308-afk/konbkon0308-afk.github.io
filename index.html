@@ -3693,7 +3693,7 @@ function toggleOnFoot(){ // 追加: 車から降りる・乗るを切り替え�
     if(Math.hypot(S.u,S.v)>2){showComment('車を止めてから降りてね');return;} // 追加: 止まってから降りる
     onFoot=true; // 追加: 徒歩にする
     parkedPos={x:S.x,z:S.z,h:S.h}; // 追加: 車の場所を覚える
-    if(!walkChar){walkChar=makePed(0xf97316);walkChar.excl.visible=false;} // 追加: 歩く人を作る
+    if(!walkChar){walkChar=makePed(0xf97316);walkChar.excl.visible=false;applyAvatar3000(walkChar,SET.avatar||{top:0,shoes:0,hat:0});} // 追加: 歩く人を作って着せ替えを反映する
     if(walkChar&&!walkChar.nameTag){const nt=aiNameSprite(SET.names[0]||'プレイヤー');nt.position.set(0,2.4,0);walkChar.g.add(nt);walkChar.nameTag=nt;} // 追加: 歩く人の上に自分の名前を出す
     walkChar.g.visible=true; // 追加: 歩く人を見せる
     walkChar.g.position.set(S.x,groundYAt(S.x,S.z),S.z); // 追加: 車の横に立つ（地面の高さに合わせる）
@@ -5234,7 +5234,7 @@ function netEffName(k){ // 追加: そのプレイヤーの本当の名前（オ
 function netSendProfile2721(){ // 追加: 自分のデータ（名前と車）を相手に送る
   if(!SET.netMode)return; // 追加: オンラインでなければ送らない
   if(typeof conn==='undefined'||!conn||!conn.open)return; // 追加: つながっていなければ送らない
-  try{conn.send({profile:{name:SET.names[0]||'プレイヤー',cfg:CFG[0],title:equippedTitleText2900(),icon:(SET.profile&&SET.profile.icon)||'🏎',lv:levelOf2800(SET.xp).lv,crew:(SET.profile&&SET.profile.crew)||''}});}catch(e){} // 追加: 自分の名前・車・称号・レベル・クルーを送る
+  try{conn.send({profile:{name:SET.names[0]||'プレイヤー',cfg:CFG[0],title:equippedTitleText2900(),icon:(SET.profile&&SET.profile.icon)||'🏎',lv:levelOf2800(SET.xp).lv,crew:(SET.profile&&SET.profile.crew)||'',av:SET.avatar||null}});}catch(e){} // 追加: 自分の名前・車・称号・レベル・クルー・着せ替えを送る
 } // 追加: データ送信ここまで
 function netApplyOwnProfile2721(){ // 追加: ゲストは自分のデータで自分の車を作り直す
   if(!SET.netMode||SET.host)return; // 追加: ゲストだけ（ホストは最初から自分のデータの車）
@@ -6110,6 +6110,122 @@ document.addEventListener('click',e=>{const t=e.target;if(!t||!t.closest)return;
   const fo=t.closest('[data-friend-addopp]');if(fo){const nm=(netRemoteProfile2721&&netRemoteProfile2721.name)||'プレイヤー';const cd=SET.roomCode||'';if(cd&&!SET.friends.some(f=>f.name===nm&&f.code===cd)){SET.friends.push({name:nm,code:cd});save();showComment('⭐ '+nm+' をフレンドに登録したよ');}else showComment('登録ずみだよ');return;} // 追加: 今の対戦相手をフレンドに登録する
 }); // 追加: プロフィール・称号・フレンドのクリック処理ここまで
 // ======== 追加: v29.0 ここまで ========
+// ======== 追加: v30.0 アバター着せ替え・服屋/靴屋/帽子屋・オンライン歩行同期 ========
+if(!SET.avatar)SET.avatar={top:0,shoes:0,hat:0,ownTop:[0],ownShoes:[0],ownHat:[0]}; // 追加: 着せ替えの保存
+if(SET.avatar.top===undefined)SET.avatar.top=0;if(SET.avatar.shoes===undefined)SET.avatar.shoes=0;if(SET.avatar.hat===undefined)SET.avatar.hat=0; // 追加: 着せ替えの初期値
+if(!SET.avatar.ownTop)SET.avatar.ownTop=[0];if(!SET.avatar.ownShoes)SET.avatar.ownShoes=[0];if(!SET.avatar.ownHat)SET.avatar.ownHat=[0]; // 追加: 持っている服・靴・帽子
+const TOPS3000=[ // 追加: 服の一覧（体の色・ズボンの色）
+{n:'いつもの服',body:0xf97316,pants:0x1f2937,price:0,swatch:'f97316'}, // 追加: 服
+{n:'赤ジャケット',body:0xe63946,pants:0x1f2937,price:20000,swatch:'e63946'}, // 追加: 服
+{n:'青パーカー',body:0x2563eb,pants:0x374151,price:20000,swatch:'2563eb'}, // 追加: 服
+{n:'ミントコーデ',body:0x10b981,pants:0xf8fafc,price:25000,swatch:'10b981'}, // 追加: 服
+{n:'ピンクコーデ',body:0xec4899,pants:0x831843,price:25000,swatch:'ec4899'}, // 追加: 服
+{n:'迷彩アーミー',body:0x4d7c0f,pants:0x365314,price:50000,swatch:'4d7c0f'}, // 追加: 服
+{n:'白シャツ紳士',body:0xf8fafc,pants:0x334155,price:60000,swatch:'f8fafc'}, // 追加: 服
+{n:'黒スーツ',body:0x111827,pants:0x111827,price:80000,swatch:'111827'}, // 追加: 服
+{n:'レーシングスーツ',body:0xdc2626,pants:0x111827,price:150000,swatch:'dc2626',stripe:0xf8fafc}, // 追加: 服
+{n:'ゴールドジャケット',body:0xf59e0b,pants:0x78350f,price:300000,swatch:'f59e0b'} // 追加: 服
+]; // 追加: 服の一覧ここまで
+const SHOES3000=[ // 追加: 靴の一覧
+{n:'スニーカー（白）',col:0xf8fafc,price:0,swatch:'f8fafc'}, // 追加: 靴
+{n:'スニーカー（赤）',col:0xef4444,price:10000,swatch:'ef4444'}, // 追加: 靴
+{n:'スニーカー（青）',col:0x3b82f6,price:10000,swatch:'3b82f6'}, // 追加: 靴
+{n:'蛍光グリーン',col:0x84cc16,price:40000,swatch:'84cc16'}, // 追加: 靴
+{n:'黒ブーツ',col:0x1f2937,price:30000,swatch:'1f2937'}, // 追加: 靴
+{n:'金スニーカー',col:0xf59e0b,price:120000,swatch:'f59e0b'} // 追加: 靴
+]; // 追加: 靴の一覧ここまで
+const HATS3000=[ // 追加: 帽子の一覧
+{n:'なし',type:'none',col:0x000000,price:0,swatch:'9ca3af'}, // 追加: 帽子
+{n:'キャップ（赤）',type:'cap',col:0xef4444,price:8000,swatch:'ef4444'}, // 追加: 帽子
+{n:'キャップ（青）',type:'cap',col:0x3b82f6,price:8000,swatch:'3b82f6'}, // 追加: 帽子
+{n:'キャップ（黒）',type:'cap',col:0x111827,price:8000,swatch:'111827'}, // 追加: 帽子
+{n:'ヘルメット（白）',type:'helm',col:0xf8fafc,price:50000,swatch:'f8fafc'}, // 追加: 帽子
+{n:'猫耳',type:'ears',col:0xec4899,price:60000,swatch:'ec4899'}, // 追加: 帽子
+{n:'ヘルメット（金）',type:'helm',col:0xf59e0b,price:200000,swatch:'f59e0b'}, // 追加: 帽子
+{n:'王冠',type:'crown',col:0xfbbf24,price:500000,swatch:'fbbf24'} // 追加: 帽子
+]; // 追加: 帽子の一覧ここまで
+function applyAvatar3000(ch,av){try{ // 追加: 人の見た目に着せ替えを反映する
+  if(!ch||!ch.g||!av)return; // 追加: 人がいなければ何もしない
+  const top=TOPS3000[av.top]||TOPS3000[0]; // 追加: 今の服
+  const body=ch.g.children[0];if(body&&body.material&&body.material.color)body.material.color.setHex(top.body); // 追加: 体の色を服の色に
+  [ch.legL,ch.legR].forEach(leg=>{if(leg&&leg.children[0]&&leg.children[0].material)leg.children[0].material.color.setHex(top.pants);}); // 追加: ズボンの色
+  if(ch.shoeL){ch.legL.remove(ch.shoeL);ch.legR.remove(ch.shoeR);ch.shoeL=null;ch.shoeR=null;} // 追加: 古い靴を脱ぐ
+  const sh=SHOES3000[av.shoes]||SHOES3000[0]; // 追加: 今の靴
+  const mkShoe=()=>{const s=new THREE.Mesh(new THREE.BoxGeometry(0.2,0.09,0.32),LM(sh.col));s.position.set(0,-0.56,0.05);return s;}; // 追加: 靴を作る
+  ch.shoeL=mkShoe();ch.legL.add(ch.shoeL);ch.shoeR=mkShoe();ch.legR.add(ch.shoeR); // 追加: 靴を履く（足と一緒に動く）
+  if(ch.hatG){ch.g.remove(ch.hatG);ch.hatG=null;} // 追加: 古い帽子を脱ぐ
+  const hat=HATS3000[av.hat]||HATS3000[0]; // 追加: 今の帽子
+  if(hat.type&&hat.type!=='none'){ // 追加: 帽子をかぶる
+    const hg=new THREE.Group();hg.position.y=1.64; // 追加: 頭の上に置く
+    if(hat.type==='cap'){const dome=new THREE.Mesh(new THREE.SphereGeometry(0.21,12,8,0,Math.PI*2,0,Math.PI/2),LM(hat.col));hg.add(dome);const brim=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.03,0.2),LM(hat.col));brim.position.set(0,0.01,0.24);hg.add(brim);} // 追加: キャップ
+    else if(hat.type==='helm'){const dome=new THREE.Mesh(new THREE.SphereGeometry(0.235,14,10),LM(hat.col));dome.position.y=0.03;hg.add(dome);const visor=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.09,0.03),LM(0x111827));visor.position.set(0,0.03,0.21);hg.add(visor);} // 追加: ヘルメット
+    else if(hat.type==='crown'){const band=new THREE.Mesh(new THREE.CylinderGeometry(0.17,0.19,0.13,10),LM(hat.col));band.position.y=0.05;hg.add(band);for(let i=0;i<4;i++){const spike=new THREE.Mesh(new THREE.ConeGeometry(0.045,0.12,4),LM(hat.col));const a=i*Math.PI/2+0.4;spike.position.set(Math.cos(a)*0.14,0.16,Math.sin(a)*0.14);hg.add(spike);}} // 追加: 王冠
+    else if(hat.type==='ears'){[-1,1].forEach(s=>{const ear=new THREE.Mesh(new THREE.ConeGeometry(0.075,0.17,4),LM(hat.col));ear.position.set(s*0.11,0.1,0);ear.rotation.z=-s*0.25;hg.add(ear);});} // 追加: 猫耳
+    ch.g.add(hg);ch.hatG=hg; // 追加: 帽子を付ける
+  } // 追加: 帽子ここまで
+  if(ch.stripeM){ch.g.remove(ch.stripeM);ch.stripeM=null;} // 追加: 古いラインを消す
+  if(top.stripe){const st=new THREE.Mesh(new THREE.BoxGeometry(0.2,0.72,0.02),LM(top.stripe));st.position.set(0,0.95,0.16);ch.g.add(st);ch.stripeM=st;} // 追加: レーシングスーツのライン
+}catch(e){}} // 追加: 着せ替え反映ここまで
+STORES.push({id:'clothes',pos:P[170],title:'👕 服屋「峠コレクション」',col:'#ec4899',roof:0x9d174d,prompt:'👕 服屋'}); // 追加: 服屋を店一覧に足す
+STORES.push({id:'shoes',pos:P[560],title:'👟 靴屋「ステップ峠」',col:'#0ea5e9',roof:0x075985,prompt:'👟 靴屋'}); // 追加: 靴屋を店一覧に足す
+STORES.push({id:'hats',pos:P[900],title:'🧢 帽子屋「キャップ峠」',col:'#f59e0b',roof:0x92400e,prompt:'🧢 帽子屋'}); // 追加: 帽子屋を店一覧に足す
+(function(){ // 追加: 服屋・靴屋・帽子屋の建物を建てる（既存の店と同じ見た目）
+  if(RT.circuit)return; // 追加: サーキットには店はない
+  STORES.slice(-3).forEach(st=>{ // 追加: 追加した3店舗だけ建てる
+    if(!st.pos)return; // 追加: 場所がなければ建てない
+    const gr=new THREE.Group(); // 追加: 店の建物
+    const box=new THREE.Mesh(new THREE.BoxGeometry(8.2,5.0,5.8),LM(0x1f2937));box.position.y=2.5;gr.add(box); // 追加: 建物本体
+    const roof=new THREE.Mesh(new THREE.ConeGeometry(6.5,3.0,4),LM(st.roof));roof.position.y=6.4;roof.rotation.y=Math.PI/4;gr.add(roof); // 追加: 屋根
+    const c=document.createElement('canvas');c.width=360;c.height=72;const g=c.getContext('2d'); // 追加: 看板を描く
+    g.fillStyle=st.col;g.fillRect(0,0,360,72);g.strokeStyle='#fff';g.lineWidth=4;g.strokeRect(3,3,354,66); // 追加: 看板の色と枠
+    g.fillStyle='#fff';g.font='bold 24px '+FONT;g.textAlign='center';g.textBaseline='middle';g.fillText(st.title,180,36); // 追加: 店名
+    const sMat=new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),side:THREE.DoubleSide}); // 追加: 看板の素材
+    const sMesh=new THREE.Mesh(new THREE.PlaneGeometry(7.2,1.7),sMat);sMesh.position.set(0,3.8,2.95);gr.add(sMesh); // 追加: 看板を付ける
+    gr.position.set(st.pos.x,st.pos.y,st.pos.z);gr.rotation.y=Math.atan2(st.pos.x,st.pos.z);scene.add(gr); // 追加: 店を置く
+  }); // 追加: 建物ここまで
+})(); // 追加: 服屋などの建物ここまで
+const _renderModalBody3000=renderPlayerModalBody; // 追加: 元の店画面を覚える
+renderPlayerModalBody=function(k){const sid=pModalState[k].type;if(sid==='clothes'||sid==='shoes'||sid==='hats'){renderClothShop3000(k,sid);return;}_renderModalBody3000(k);}; // 追加: 服屋などは着せ替え画面にする
+function clothKindOf3000(sid){return sid==='clothes'?{kind:'top',ownKey:'ownTop',items:TOPS3000}:(sid==='shoes'?{kind:'shoes',ownKey:'ownShoes',items:SHOES3000}:{kind:'hat',ownKey:'ownHat',items:HATS3000});} // 追加: 店ごとの品物
+function renderClothShop3000(k,sid){ // 追加: 着せ替え店の画面を描く
+  const body=document.getElementById('modalBody'+k);const ci=clothKindOf3000(sid);const own=SET.avatar[ci.ownKey]||[];const eq=SET.avatar[ci.kind]; // 追加: 所持と装着の状態
+  let html='<div class="currency-badge">💰 '+SET.names[k]+'の口座残高: ¥'+SET.money[k].toLocaleString()+'</div><div class="card">歩くときの自分の見た目だよ。買うとそのまま着るよ。オンラインでは相手にも見えるよ👀</div>'; // 追加: 店の案内
+  ci.items.forEach((it,i)=>{const has=own.indexOf(i)>=0;const isEq=eq===i;html+='<div class="card" style="display:flex;justify-content:space-between;align-items:center"><span><span style="display:inline-block;width:18px;height:18px;border-radius:4px;background:#'+it.swatch+';vertical-align:middle;margin-right:6px;border:1px solid #555"></span><b>'+it.n+'</b>'+(isEq?' <span style="color:#ffd700">装着中</span>':'')+'</span><span>'+(has?('<button class="btn" data-cloth-wear="'+ci.kind+':'+i+'">着る</button>'):('<button class="btn gold" data-cloth-buy="'+ci.kind+':'+i+'">¥'+it.price.toLocaleString()+' で買う</button>'))+'</span></div>';}); // 追加: 品物の一覧
+  body.innerHTML=html; // 追加: 画面に出す
+} // 追加: 着せ替え店の画面ここまで
+document.addEventListener('click',e=>{const t=e.target;if(!t||!t.closest)return; // 追加: 着せ替え店のボタンを処理する
+  const b=t.closest('[data-cloth-buy]');if(b){const pr=b.dataset.clothBuy.split(':');const kind=pr[0],i=+pr[1];const ci=kind==='top'?{ownKey:'ownTop',items:TOPS3000}:(kind==='shoes'?{ownKey:'ownShoes',items:SHOES3000}:{ownKey:'ownHat',items:HATS3000});const it=ci.items[i];const k=pModalState[1].open?1:0;if((SET.money[k]||0)>=it.price){SET.money[k]-=it.price;(SET.avatar[ci.ownKey]=SET.avatar[ci.ownKey]||[]).push(i);SET.avatar[kind]=i;save();if(typeof walkChar!=='undefined'&&walkChar)applyAvatar3000(walkChar,SET.avatar);showComment('🛍 '+it.n+' を買って着たよ！');renderPlayerModalBody(k);}else showComment('お金が足りないよ');return;} // 追加: 買って着る
+  const w=t.closest('[data-cloth-wear]');if(w){const pr=w.dataset.clothWear.split(':');SET.avatar[pr[0]]=+pr[1];save();if(typeof walkChar!=='undefined'&&walkChar)applyAvatar3000(walkChar,SET.avatar);const k=pModalState[1].open?1:0;renderPlayerModalBody(k);return;} // 追加: 持っている物を着る
+}); // 追加: 着せ替え店のクリック処理ここまで
+let remoteWalker3000=null,remoteWalkerData3000=null,remotePhase3000=0,remoteAvKey3000='',remoteNm3000=''; // 追加: 相手の歩く人の状態
+function ensureRemoteWalker3000(w){ // 追加: 相手の歩く人を作る
+  if(!remoteWalker3000){remoteWalker3000=makePed(0x2563eb);remoteWalker3000.excl.visible=false;remoteWalker3000.g.position.set(w.x,groundYAt(w.x,w.z),w.z);} // 追加: 相手の人を作る
+  remoteWalker3000.g.visible=true; // 追加: 見せる
+  if(remoteNm3000!==(w.nm||'')){remoteNm3000=w.nm||'';if(remoteWalker3000.nameTag)remoteWalker3000.g.remove(remoteWalker3000.nameTag);const nt=aiNameSprite(remoteNm3000||'プレイヤー');nt.position.set(0,2.4,0);remoteWalker3000.g.add(nt);remoteWalker3000.nameTag=nt;} // 追加: 名前（称号つき）を出す
+  const avk=JSON.stringify(w.av||{});if(avk!==remoteAvKey3000){remoteAvKey3000=avk;applyAvatar3000(remoteWalker3000,w.av||{top:0,shoes:0,hat:0});} // 追加: 相手の着せ替えを反映する
+} // 追加: 相手の歩く人ここまで
+function remoteWalkerStep3000(dt){ // 追加: 相手の歩く人を動かす
+  const w=remoteWalkerData3000;if(!w||!remoteWalker3000)return; // 追加: データがなければ何もしない
+  if(!w.on){remoteWalker3000.g.visible=false;return;} // 追加: 車に乗ったら消す
+  remoteWalker3000.g.visible=true;const g=remoteWalker3000.g; // 追加: 見せて動かす
+  const dx=w.x-g.position.x,dz=w.z-g.position.z;const dist=Math.hypot(dx,dz);const f=Math.min(1,dt*12); // 追加: 目標へなめらかに近づく
+  g.position.x+=dx*f;g.position.z+=dz*f;g.position.y=groundYAt(g.position.x,g.position.z);g.rotation.y=w.h||0; // 追加: 位置と向き
+  if(dist>0.15){remotePhase3000+=dt*9;remoteWalker3000.legL.rotation.x=Math.sin(remotePhase3000)*0.6;remoteWalker3000.legR.rotation.x=-Math.sin(remotePhase3000)*0.6;} // 追加: 歩く足の動き
+  else{remoteWalker3000.legL.rotation.x*=0.8;remoteWalker3000.legR.rotation.x*=0.8;} // 追加: 止まったら足を戻す
+} // 追加: 相手の歩く人の動きここまで
+const _pedStep3000=pedStep; // 追加: 元の毎フレーム処理を覚える
+pedStep=function(dt){_pedStep3000(dt);try{remoteWalkerStep3000(dt);}catch(e){}}; // 追加: 相手の歩く人も毎フレーム動かす
+const _applyNetData3000=applyNetData; // 追加: 元の受信処理を覚える
+applyNetData=function(data){try{if(data&&data.walker){remoteWalkerData3000=data.walker;if(data.walker.on)ensureRemoteWalker3000(data.walker);else if(remoteWalker3000)remoteWalker3000.g.visible=false;return;}}catch(e){}_applyNetData3000(data);}; // 追加: 相手の歩行データを受け取る
+let lastFootSent3000=-1; // 追加: 歩行データを送った状態
+setInterval(()=>{try{ // 追加: 自分の歩行状態を相手に送る（約0.12秒ごと）
+  if(!SET.netMode||typeof conn==='undefined'||!conn||!conn.open)return; // 追加: オンラインでなければ送らない
+  const on=(typeof onFoot!=='undefined'&&onFoot&&typeof walkChar!=='undefined'&&walkChar&&walkChar.g.visible)?1:0; // 追加: 今歩いているか
+  if(on===0&&lastFootSent3000===0)return; // 追加: 乗ったままなら送り続けない
+  lastFootSent3000=on; // 追加: 送った状態を覚える
+  conn.send({walker:{on:on,x:on?walkChar.g.position.x:0,z:on?walkChar.g.position.z:0,h:(typeof walkHeading!=='undefined'?walkHeading:0),av:SET.avatar,nm:netTagName2900(onFootPl().k)}}); // 追加: 位置・向き・着せ替え・名前を送る
+}catch(e){}},120); // 追加: 歩行の送信ここまで
+// ======== 追加: v30.0 ここまで ========
 applyQual();go('main');layout();requestAnimationFrame(loop);
 setTimeout(netAutoRejoin,1200); // 追加: オンライン切替でのリロードなら部屋へ自動で戻る
 })();
