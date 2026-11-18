@@ -1684,7 +1684,7 @@ function driftStep(pl,dt){ // 追加: ドリフトスコア計算
     ds.idle+=dt; // 追加: ドリフトしていない時間を数える
     if(ds.idle>1.0&&ds.chain>0){ // 追加: 1秒以上ドリフトしなかったら確定
       const gain=Math.floor(ds.chain)*ds.combo;ds.score+=gain; // 追加: コンボ倍率で賞金化
-      SET.money[pl.k]+=gain;save(); // 追加: 賞金を口座に入れる
+      if(isFinite(gain)&&gain>0)SET.money[pl.k]+=gain;save(); // 追加: 賞金を口座に入れる（数字が壊れていたら入れない）
       showComment('🌀 ドリフトボーナス +¥'+gain.toLocaleString()+' (×'+ds.combo+')'); // 追加: 実況で知らせる
       ds.chain=0;ds.combo=1; // 追加: チェーンをリセット
     } // 追加: 確定ここまで
@@ -2018,12 +2018,12 @@ function companyStep(dt){ // 追加: 会社の販売を進める（30秒で1日�
   SET.company.designs.forEach(d=>{ // 追加: 設計した車ごとに売る
     const cc=companyCost(d); // 追加: コスト
     const appeal=cc.body.appeal+cc.wing.appeal+Math.min(70,d.ps/10); // 追加: 人気（形＋ウィング＋馬力）
-    const fair=d.cost*1.3; // 追加: ちょうどいい値段
-    const ratio=d.price/fair; // 追加: 値段の割高さ（1でちょうどいい）
+    const dCost=(typeof d.cost==='number'&&isFinite(d.cost))?d.cost:cc.cost;const dPrice=(typeof d.price==='number'&&isFinite(d.price))?d.price:dCost*1.3;const fair=dCost*1.3; // 追加: ちょうどいい値段（売値・コストが壊れていたら計算し直す）
+    const ratio=dPrice/fair; // 追加: 値段の割高さ（1でちょうどいい）
     const demand=cc.body.market*(appeal/60)*Math.max(0.2,1.6-ratio)*(1+SET.company.rep/100)*(0.7+Math.random()*0.6); // 追加: 需要（人気・コスパ・評判で決まる）
     const units=Math.min(3,Math.max(0,Math.round(demand))); // 追加: 売れた台数（1日最大3台まで。お金が無限に増えるのを防ぐ）
     if(units>0){ // 追加: 売れたときだけ
-      const profit=(d.price-d.cost)*units; // 追加: 利益（売値−製造コスト）×台数
+      const profit=(dPrice-dCost)*units; // 追加: 利益（売値−製造コスト）×台数
       const tax=Math.floor(profit*0.2); // 追加: 法人税20%
       const net=profit-tax; // 追加: 税引き後の利益
       SET.money[0]+=net; // 追加: 税引き後の利益を所持金に入れる
@@ -5221,6 +5221,18 @@ function netApplyRemoteProfile2721(){ // 追加: 相手のデータで相手の�
   const keep=CFG[op];CFG[op]=Object.assign({},D0,netRemoteProfile2721.cfg);try{rebuild(op);}catch(e){}CFG[op]=keep; // 追加: 相手の車で作り直す（足りない設定は初期値で埋める。保存データは書き換えない）
   try{const pl=players[op];scene.remove(pl.plate);pl.plate=mkPlate(netRemoteProfile2721.name||'相手');pl.nameTagCar=null;}catch(e){} // 追加: 名前プレートも相手の名前にする（タグは付け直させる）
 } // 追加: 相手のデータ適用ここまで
+let lastGoodMoney=[null,null]; // 追加: 最後に確認した正常な所持金（NaN対策）
+function moneyFixStep(){ // 追加: 所持金がNaN（数字でなくなる）になっていたら直す
+  if(!Array.isArray(SET.money))return; // 追加: 所持金の入れ物がなければ何もしない
+  for(let k=0;k<2;k++){ // 追加: 両プレイヤー分をチェック
+    const v=SET.money[k]; // 追加: 今の所持金
+    if(typeof v==='number'&&isFinite(v)){lastGoodMoney[k]=Math.floor(v);} // 追加: 正常な数字なら覚えておく
+    else{SET.money[k]=(lastGoodMoney[k]!=null?lastGoodMoney[k]:5000000);try{showComment('💰 所持金のデータが壊れていたので直したよ');}catch(e){}save();} // 追加: 壊れていたら、最後の正常な額（なければ標準の¥500万）に戻す
+  } // 追加: チェックここまで
+} // 追加: 所持金の監視ここまで
+moneyFixStep(); // 追加: 起動時にまず直す（壊れたセーブの救済）
+setTimeout(moneyFixStep,50); // 追加: 起動直後の値も正しく覚え直す（他の初期化が終わってから）
+setInterval(moneyFixStep,1000); // 追加: 1秒ごとに監視して、壊れたらすぐ直す
 const _sr101=showRaceResult; // 追加: リザルト表示を覚える（101用）
 showRaceResult=function(){ // 追加: リザルトのついでにGTグランプリの連続優勝を数える
   _sr101(); // 追加: これまでのリザルト処理
