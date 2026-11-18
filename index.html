@@ -5088,10 +5088,10 @@ function photoSpotStep(){ // 追加: フォトスポットのボタンの表示
 function playerTagStep(){ // 追加: 自分の車にも名前を出す
   for(let k=0;k<SET.np;k++){ // 追加: プレイヤーごとに
     const pl=players[k];if(!pl||!pl.model||!pl.model.car)continue; // 追加: 車がなければ飛ばす
-    if(!pl.nameTagCar||pl.nameTagCar.parent!==pl.model.car||pl.nameTagName!==(SET.names[k]||'')){ // 追加: タグがなければ付ける（車や名前が変わったら付け直す）
+    if(!pl.nameTagCar||pl.nameTagCar.parent!==pl.model.car||pl.nameTagName!==(netEffName(k)||'')){ // 追加: タグがなければ付ける（車や名前が変わったら付け直す）
       if(pl.nameTagCar&&pl.nameTagCar.parent)pl.nameTagCar.parent.remove(pl.nameTagCar); // 追加: 古いタグを外す
-      const sp=aiNameSprite(SET.names[k]||'プレイヤー'); // 追加: 名前の板を作る
-      pl.model.car.add(sp);pl.nameTagCar=sp;pl.nameTagName=SET.names[k]||''; // 追加: 車に付ける
+      const sp=aiNameSprite(netEffName(k)||'プレイヤー'); // 追加: 名前の板を作る
+      pl.model.car.add(sp);pl.nameTagCar=sp;pl.nameTagName=netEffName(k)||''; // 追加: 車に付ける
     } // 追加: タグ付けここまで
     pl.nameTagCar.visible=(state==='game'&&!onFoot); // 追加: ゲーム中だけ出す（歩行中は人の上に名前が出る）
   } // 追加: プレイヤーここまで
@@ -5124,7 +5124,7 @@ function netLeaveRoom(notify){ // 追加: ルームを出る（切断ボタン�
   SET.netMode=false;SET.np=1;SET.roomCode=null;SET.host=true;save(); // 追加: 1人プレイの状態に戻す（先にネット状態を切ってから接続を閉じる）
   try{if(conn)conn.close();}catch(e){} // 追加: 接続を閉じる
   try{if(peer)peer.destroy();}catch(e){} // 追加: 通信を終わらせる
-  conn=null;peer=null;netWasOpen2720=false; // 追加: 接続を空にする
+  conn=null;peer=null;netWasOpen2720=false;netRemoteProfile2721=null;netProfileConn2721=null; // 追加: 接続を空にする（相手のデータも消す）
   const nm=document.getElementById('netModal');if(nm)nm.style.display='none'; // 追加: ネット画面を閉じる
   if(state==='game')go('main'); // 追加: ゲーム中ならメニューに戻る
 } // 追加: ルームを出るここまで
@@ -5136,6 +5136,7 @@ function netSyncSend2720(){ // 追加: ホストのマップ・モードを相�
 const _applyNet2720=applyNetData; // 追加: 元の受信処理を覚える
 applyNetData=function(data){ // 追加: 切断と同期の受信を足す
   if(data&&data.leave){netLeaveRoom(false);showComment('🔌 相手がルームを出たよ');return;} // 追加: 相手が出たら自分も1人に戻る
+  if(data&&data.profile){netRemoteProfile2721=data.profile;netApplyRemoteProfile2721();return;} // 追加: 相手のデータ（名前と車）を受け取って相手の車に反映する
   if(data&&data.sync&&!SET.host){ // 追加: ゲストはホストの設定に合わせる
     const sr=data.sync.route,sm=data.sync.mode; // 追加: ホストのマップ・モード
     if(sr!==undefined&&sr!==SET.route){netSwitchApply(sr,sm||SET.mode);return;} // 追加: マップが違えばみんなで移動する
@@ -5145,7 +5146,7 @@ applyNetData=function(data){ // 追加: 切断と同期の受信を足す
   _applyNet2720(data); // 追加: それ以外は元の受信処理
 }; // 追加: 受信の追加ここまで
 const _startGame2720=startGame; // 追加: 元のゲーム開始を覚える
-startGame=function(){netSyncSend2720();_startGame2720();}; // 追加: 開始時にホストの設定を相手へ送る
+startGame=function(){netSyncSend2720();netSendProfile2721();netApplyOwnProfile2721();if(netRemoteProfile2721)netApplyRemoteProfile2721();_startGame2720();}; // 追加: 開始時にホストの設定と自分のデータを相手へ送り、車も作り直す
 const _draw2720=draw; // 追加: 元のメニュー描画を覚える
 draw=function(){ // 追加: オンラインのメニューは自分のパネルだけ出す（ホストが操作できるように）
   _draw2720(); // 追加: まず元の描画
@@ -5161,6 +5162,7 @@ const netMenuPanel2720=document.createElement('div');netMenuPanel2720.id='netMen
 function netUiStep2720(){ // 追加: オンラインのボタンや同期を毎回見る
   netLeaveBtnGame.style.display=(SET.netMode&&state==='game')?'block':'none'; // 追加: ゲーム中だけ切断ボタンを出す
   if(SET.netMode&&typeof conn!=='undefined'&&conn&&conn.open)netWasOpen2720=true; // 追加: つながったことを覚える
+  if(SET.netMode&&typeof conn!=='undefined'&&conn&&conn.open&&netProfileConn2721!==conn){netProfileConn2721=conn;netSendProfile2721();netApplyOwnProfile2721();if(netRemoteProfile2721)netApplyRemoteProfile2721();} // 追加: つながったら自分のデータを送って、自分の車も自分のデータで作り直す
   if(SET.netMode&&netWasOpen2720&&!(typeof conn!=='undefined'&&conn&&conn.open)){netLeaveRoom(false);showComment('🔌 相手との接続が切れたよ');return;} // 追加: 相手が消えたら1人に戻る
   netSyncT2720+=0.016; // 追加: 同期の間隔を数える
   if(netSyncT2720>2){netSyncT2720=0;netSyncSend2720();} // 追加: 2秒ごとにホストの設定を送って食い違いを防ぐ
@@ -5188,6 +5190,28 @@ document.addEventListener('click',e=>{ // 追加: 切断ボタンの処理
   const t=e.target;if(!t||!t.getAttribute)return; // 追加: ボタンか確認
   if(t.getAttribute('data-netleave')){netLeaveRoom(true);showComment('🔌 ルームを出たよ');} // 追加: 切断する
 }); // 追加: 切断ボタンここまで
+let netRemoteProfile2721=null,netProfileConn2721=null; // 追加: 相手のデータ（名前と車）と、データを送った接続
+function netEffName(k){ // 追加: そのプレイヤーの本当の名前（オンラインでは相手＝相手の名前、ゲストの自分＝自分の名前）
+  if(SET.netMode&&netRemoteProfile2721&&k===(SET.host?1:0))return netRemoteProfile2721.name||SET.names[k]||''; // 追加: 相手の車には相手の名前
+  if(SET.netMode&&!SET.host&&k===1)return SET.names[0]||''; // 追加: ゲストの自分の車には自分の名前
+  return SET.names[k]||''; // 追加: それ以外は今まで通り
+} // 追加: 名前の解決ここまで
+function netSendProfile2721(){ // 追加: 自分のデータ（名前と車）を相手に送る
+  if(!SET.netMode)return; // 追加: オンラインでなければ送らない
+  if(typeof conn==='undefined'||!conn||!conn.open)return; // 追加: つながっていなければ送らない
+  try{conn.send({profile:{name:SET.names[0]||'プレイヤー',cfg:CFG[0]}});}catch(e){} // 追加: 自分の名前と車の設定を送る
+} // 追加: データ送信ここまで
+function netApplyOwnProfile2721(){ // 追加: ゲストは自分のデータで自分の車を作り直す
+  if(!SET.netMode||SET.host)return; // 追加: ゲストだけ（ホストは最初から自分のデータの車）
+  const keep=CFG[1];CFG[1]=CFG[0];try{rebuild(1);}catch(e){}CFG[1]=keep; // 追加: 2P枠の残り物ではなく自分の車で作り直す（保存データは書き換えない）
+  try{const pl=players[1];scene.remove(pl.plate);pl.plate=mkPlate(SET.names[0]||'プレイヤー');pl.nameTagCar=null;}catch(e){} // 追加: 名前プレートも自分の名前にする（タグは付け直させる）
+} // 追加: 自分のデータ適用ここまで
+function netApplyRemoteProfile2721(){ // 追加: 相手のデータで相手の車を作り直す
+  if(!netRemoteProfile2721||!netRemoteProfile2721.cfg)return; // 追加: 相手のデータがなければ何もしない
+  const op=SET.host?1:0; // 追加: 相手のプレイヤー番号
+  const keep=CFG[op];CFG[op]=Object.assign({},D0,netRemoteProfile2721.cfg);try{rebuild(op);}catch(e){}CFG[op]=keep; // 追加: 相手の車で作り直す（足りない設定は初期値で埋める。保存データは書き換えない）
+  try{const pl=players[op];scene.remove(pl.plate);pl.plate=mkPlate(netRemoteProfile2721.name||'相手');pl.nameTagCar=null;}catch(e){} // 追加: 名前プレートも相手の名前にする（タグは付け直させる）
+} // 追加: 相手のデータ適用ここまで
 const _sr101=showRaceResult; // 追加: リザルト表示を覚える（101用）
 showRaceResult=function(){ // 追加: リザルトのついでにGTグランプリの連続優勝を数える
   _sr101(); // 追加: これまでのリザルト処理
