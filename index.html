@@ -5123,10 +5123,10 @@ function photoSpotStep(){ // 追加: フォトスポットのボタンの表示
 function playerTagStep(){ // 追加: 自分の車にも名前を出す
   for(let k=0;k<SET.np;k++){ // 追加: プレイヤーごとに
     const pl=players[k];if(!pl||!pl.model||!pl.model.car)continue; // 追加: 車がなければ飛ばす
-    if(!pl.nameTagCar||pl.nameTagCar.parent!==pl.model.car||pl.nameTagName!==(netEffName(k)||'')){ // 追加: タグがなければ付ける（車や名前が変わったら付け直す）
+    if(!pl.nameTagCar||pl.nameTagCar.parent!==pl.model.car||pl.nameTagName!==(netTagName2900(k)||'')){ // 追加: タグがなければ付ける（車や名前・称号が変わったら付け直す）
       if(pl.nameTagCar&&pl.nameTagCar.parent)pl.nameTagCar.parent.remove(pl.nameTagCar); // 追加: 古いタグを外す
-      const sp=aiNameSprite(netEffName(k)||'プレイヤー'); // 追加: 名前の板を作る
-      pl.model.car.add(sp);pl.nameTagCar=sp;pl.nameTagName=netEffName(k)||''; // 追加: 車に付ける
+      const sp=aiNameSprite(netTagName2900(k)||'プレイヤー'); // 追加: 名前の板を作る（称号つき）
+      pl.model.car.add(sp);pl.nameTagCar=sp;pl.nameTagName=netTagName2900(k)||''; // 追加: 車に付ける
     } // 追加: タグ付けここまで
     pl.nameTagCar.visible=(state==='game'&&!onFoot); // 追加: ゲーム中だけ出す（歩行中は人の上に名前が出る）
   } // 追加: プレイヤーここまで
@@ -5234,7 +5234,7 @@ function netEffName(k){ // 追加: そのプレイヤーの本当の名前（オ
 function netSendProfile2721(){ // 追加: 自分のデータ（名前と車）を相手に送る
   if(!SET.netMode)return; // 追加: オンラインでなければ送らない
   if(typeof conn==='undefined'||!conn||!conn.open)return; // 追加: つながっていなければ送らない
-  try{conn.send({profile:{name:SET.names[0]||'プレイヤー',cfg:CFG[0]}});}catch(e){} // 追加: 自分の名前と車の設定を送る
+  try{conn.send({profile:{name:SET.names[0]||'プレイヤー',cfg:CFG[0],title:equippedTitleText2900(),icon:(SET.profile&&SET.profile.icon)||'🏎',lv:levelOf2800(SET.xp).lv,crew:(SET.profile&&SET.profile.crew)||''}});}catch(e){} // 追加: 自分の名前・車・称号・レベル・クルーを送る
 } // 追加: データ送信ここまで
 function netApplyOwnProfile2721(){ // 追加: ゲストは自分のデータで自分の車を作り直す
   if(!SET.netMode||SET.host)return; // 追加: ゲストだけ（ホストは最初から自分のデータの車）
@@ -5974,7 +5974,7 @@ const _ped2800=pedStep; // 追加: 今の歩行者処理を覚える
 pedStep=function(dt){const r=_ped2800(dt);custStep2800();return r;}; // 追加: カスタムレースの見張りを足す
 const achvPanel2800=document.createElement('div');achvPanel2800.id='achvPanel2800';achvPanel2800.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:95;display:none;overflow:auto;padding:16px;';document.body.appendChild(achvPanel2800); // 追加: 実績パネルを作る
 function renderAchv2800(){achvPanel2800.innerHTML='<div style="max-width:560px;margin:0 auto;background:#14100a;border:1px solid #c9a227;border-radius:14px;padding:16px;color:#f5eeda"><h2>🏆 実績（'+ACHV2800.filter(a=>SET.achv[a.id]).length+'/'+ACHV2800.length+'）</h2>'+ACHV2800.map(a=>{const un=!!SET.achv[a.id];const pr=a.prog?a.prog():null;return '<div style="border:1px solid #3a3226;border-radius:10px;padding:8px 10px;margin:6px 0;'+(un?'':'opacity:.65')+'">'+(un?'✅':'🔒')+' <b>'+a.t+'</b>　<span style="font-size:12px">'+a.d+'</span>'+(pr?' <span style="color:#c9a227;font-size:12px">'+pr[0]+'/'+pr[1]+'</span>':'')+'<br><span style="font-size:12px;color:#9be15d">報酬: '+a.rwTxt+'</span></div>';}).join('')+'<button class="btn" data-achv-close="1">閉じる</button></div>';} // 追加: 実績パネルを描く
-function yarikomiBar2800(){if(state!=='menu')return;const p=document.getElementById('panelSingle');if(!p)return;let bar=document.getElementById('yarikomiBar2800');if(!bar){bar=document.createElement('div');bar.id='yarikomiBar2800';p.insertBefore(bar,p.firstChild);}const li=levelOf2800(SET.xp);const achvN=ACHV2800.filter(a=>SET.achv[a.id]).length;const h='<div style="font-size:13px;margin-bottom:6px">Lv.<b>'+li.lv+'</b> '+levelTitle2800(li.lv)+'　XP '+li.rest+'/'+li.need+'　🏆実績 '+achvN+'/'+ACHV2800.length+'</div><button class="btn gold" data-custopen="1">🏁 カスタムレース</button> <button class="btn" data-achv-open="1">🏆 実績を見る</button>';if(bar._h!==h){bar._h=h;bar.innerHTML=h;}} // 追加: メニュー上部にレベルと実績のバーを出す
+function yarikomiBar2800(){if(state!=='menu')return;const p=document.getElementById('panelSingle');if(!p)return;let bar=document.getElementById('yarikomiBar2800');if(!bar){bar=document.createElement('div');bar.id='yarikomiBar2800';p.insertBefore(bar,p.firstChild);}const li=levelOf2800(SET.xp);const achvN=ACHV2800.filter(a=>SET.achv[a.id]).length;const h='<div style="font-size:13px;margin-bottom:6px">'+((SET.profile&&SET.profile.icon)||'🏎')+' Lv.<b>'+li.lv+'</b> '+levelTitle2800(li.lv)+(equippedTitleText2900()?' 『'+equippedTitleText2900()+'』':'')+'　XP '+li.rest+'/'+li.need+'　🏆実績 '+achvN+'/'+ACHV2800.length+'</div><button class="btn gold" data-custopen="1">🏁 カスタムレース</button> <button class="btn" data-achv-open="1">🏆 実績を見る</button> <button class="btn" data-prof-open="1">👤 プロフィール</button>';if(bar._h!==h){bar._h=h;bar.innerHTML=h;}} // 追加: メニュー上部にレベルと実績のバーを出す
 const _mes2800=menuExtraStep; // 追加: 今のメニュー追加処理を覚える
 menuExtraStep=function(){const r=_mes2800();try{yarikomiBar2800();}catch(e){}return r;}; // 追加: やり込みバーを足す
 function custCfgHTML(k){const cc=SET.custCfg;let h='<h2>🏁 カスタムレース</h2>';h+='<div class="row">周回数</div><div class="chips">'+[1,2,3,5,10].map(n=>'<button class="chip '+(cc.laps===n?'on':'')+'" data-cust-laps="'+n+'">'+n+'周</button>').join('')+'</div>';h+='<div class="row">台数（AI敵車）</div><div class="chips">'+[4,8,12,16,20,24].map(n=>'<button class="chip '+(cc.grid===n?'on':'')+'" data-cust-grid="'+n+'">'+n+'台</button>').join('')+'</div>';h+='<div class="row">出場車（相手の車）</div><div class="chips">'+[['same','🎯 同格'],['kei','🚐 軽自動車だけ'],['sport','🏎 スポーツカー'],['super','🚀 スーパーカー'],['gt','🔥 GT/GT500'],['random','🎲 ランダム']].map(c=>'<button class="chip '+(cc.cls===c[0]?'on':'')+'" data-cust-cls="'+c[0]+'">'+c[1]+'</button>').join('')+'</div>';h+='<div class="row">コース（レース系は全部OK）</div><div class="chips">'+ROUTES.map((r,i)=>'<button class="chip '+(SET.route===i?'on':'')+'" data-cust-route="'+i+'">'+r.n+'</button>').join('')+'</div>';h+=ch('AI難易度',['初級','中級','上級 (プロ)'],SET.aiDiff,'aiDiff',k);h+='<button class="btn gold" data-custstart="1">🏁 カスタムレース開始</button> <button class="btn" data-custback="1">← もどる</button>';return h;} // 追加: カスタムレース設定画面を作る
@@ -6010,6 +6010,106 @@ applyNetData=function(data){try{if(data&&data.S&&(!isFinite(data.S.x)||!isFinite
 let sndFlip2800=false;const _snd2800=sendNetData; // 追加: 今のデータ送信を覚える
 sendNetData=function(){if(SET.netMode){sndFlip2800=!sndFlip2800;if(sndFlip2800)return;}return _snd2800();}; // 追加: 送信を半分の頻度にして回線を軽くする（安定化）
 // ======== 追加: v28.0 ここまで ========
+// ======== 追加: v29.0 プロフィール・称号・フレンド・招待（成り上がり要素） ========
+if(!SET.profile)SET.profile={icon:'🏎',bio:'',crew:'',crewIcon:'🏁'}; // 追加: プロフィール情報
+if(SET.title===undefined)SET.title=''; // 追加: つけている称号
+if(!SET.friends)SET.friends=[]; // 追加: フレンド帳
+if(!SET.netHistory)SET.netHistory=[]; // 追加: 最近遊んだ人
+if(!SET.firstDay)SET.firstDay=Date.now(); // 追加: 遊び始めた日
+const TITLES2900=[ // 追加: 称号の一覧（条件を満たすと解放）
+{id:'street',t:'🏎 街の走り屋',cond:'Lv.5到達',chk:()=>levelOf2800(SET.xp).lv>=5}, // 追加: 称号
+{id:'touge',t:'⛰ 峠の覇者',cond:'ヒルズオブラムで優勝',chk:()=>(MS.winR2||0)>=1}, // 追加: 称号
+{id:'circuit',t:'🏁 サーキットキング',cond:'レース通算30勝',chk:()=>MS.raceWin>=30}, // 追加: 称号
+{id:'drift',t:'💨 ドリフトキング',cond:'ドリフト20000以上',chk:()=>MS.driftBest>=20000}, // 追加: 称号
+{id:'gt500',t:'🔥 GT500チャンピオン',cond:'GT500で5勝',chk:()=>MS.gtWin>=5}, // 追加: 称号
+{id:'champ',t:'🏆 全コース覇者',cond:'8コース全てで優勝',chk:()=>[0,1,2,3,4,5,6,7].every(r=>(MS['winR'+r]||0)>=1)}, // 追加: 称号
+{id:'sectional',t:'🌀 セクショナルの覇者',cond:'セクショナルファンクションで優勝',chk:()=>(MS.winR8||0)>=1}, // 追加: 称号
+{id:'rich',t:'💰 億万長者',cond:'所持金¥50,000,000',chk:()=>(SET.money[0]||0)>=50000000}, // 追加: 称号
+{id:'collector',t:'🚗 カーコレクター',cond:'車を100台所持',chk:()=>(SET.ownedCars[0]||[]).length>=100}, // 追加: 称号
+{id:'founder',t:'🏭 カーカンパニー社長',cond:'自動車会社を設立',chk:()=>!!SET.company}, // 追加: 称号
+{id:'seller',t:'📈 売れっ子メーカー',cond:'会社で100台販売',chk:()=>(SET.company?(SET.company.totalSold||0):0)>=100}, // 追加: 称号
+{id:'walker',t:'🚶 街歩きマスター',cond:'徒歩で合計5km',chk:()=>MS.walk>=5000}, // 追加: 称号
+{id:'photo',t:'📸 フォトグラファー',cond:'写真を8枚投稿',chk:()=>MS.photos>=8}, // 追加: 称号
+{id:'online',t:'🌐 オンラインスター',cond:'オンラインで5回完走',chk:()=>MS.online>=5}, // 追加: 称号
+{id:'master',t:'🌟 レースマスター',cond:'レース通算100勝',chk:()=>MS.raceWin>=100}, // 追加: 称号
+{id:'legend',t:'👑 伝説のドライバー',cond:'Lv.25到達',chk:()=>levelOf2800(SET.xp).lv>=25} // 追加: 称号
+]; // 追加: 称号の一覧ここまで
+function equippedTitleText2900(){const t=TITLES2900.find(x=>x.id===SET.title);return t?t.t:'';} // 追加: つけている称号の文字
+function netTagName2900(k){const base=netEffName(k)||'プレイヤー';let title='';const localK=SET.netMode?(SET.host?0:1):0;if(k===localK)title=equippedTitleText2900();else if(SET.netMode&&netRemoteProfile2721&&k===(SET.host?1:0))title=netRemoteProfile2721.title||'';return title?('『'+title+'』'+base):base;} // 追加: 車の上の名前（称号つき）
+function esc2900(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');} // 追加: 入力文字を安全に表示する
+const profilePanel2900=document.createElement('div');profilePanel2900.id='profilePanel2900';profilePanel2900.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:96;display:none;overflow:auto;padding:16px;';document.body.appendChild(profilePanel2900); // 追加: プロフィール画面を作る
+function renderProfile2900(){ // 追加: プロフィール画面を描く
+  const li=levelOf2800(SET.xp);const pct=li.lv>=30?100:Math.floor(li.rest/li.need*100);const achvN=ACHV2800.filter(a=>SET.achv[a.id]).length;const pf=SET.profile;
+  let h='<div style="max-width:560px;margin:0 auto;background:#14100a;border:1px solid #c9a227;border-radius:14px;padding:16px;color:#f5eeda">';
+  h+='<div style="text-align:center"><span style="font-size:44px">'+esc2900(pf.icon)+'</span><br><b style="font-size:20px">'+esc2900(SET.names[0]||'プレイヤー')+'</b>'+(equippedTitleText2900()?'<br><span style="color:#ffd700">『'+equippedTitleText2900()+'』</span>':'')+'<br>Lv.'+li.lv+' '+levelTitle2800(li.lv)+'<div style="background:#333;border-radius:6px;height:10px;margin:8px 0"><div style="background:linear-gradient(90deg,#c9a227,#ffd700);height:10px;border-radius:6px;width:'+pct+'%"></div></div><span style="font-size:12px">XP '+li.rest+' / '+li.need+'（次Lvまで）</span>'+(pf.crew?'<br><span style="font-size:13px">'+esc2900(pf.crewIcon)+' クルー: <b>'+esc2900(pf.crew)+'</b></span>':'')+(pf.bio?'<br><span style="font-size:12px;color:#ccc">'+esc2900(pf.bio)+'</span>':'')+'</div>';
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px;margin:10px 0">'
+    +'<div>💰 所持金: ¥'+(SET.money[0]||0).toLocaleString()+'</div><div>🚗 車: '+(SET.ownedCars[0]||[]).length+' / '+CARS.length+'台</div>'
+    +'<div>🏆 レース優勝: '+MS.raceWin+'回</div><div>🥇 表彰台: '+MS.racePod+'回 ／ 完走: '+MS.raceFin+'回</div>'
+    +'<div>⚡ 最高速: '+Math.floor(MS.topSpeed)+' km/h</div><div>🛣 総走行距離: '+Math.floor(MS.drive/1000).toLocaleString()+' km</div>'
+    +'<div>💨 ドリフトベスト: '+Math.floor(MS.driftBest).toLocaleString()+'</div><div>📖 ミッション: '+SET.missionIdx+' / '+MISSIONS.length+'</div>'
+    +'<div>🏅 実績: '+achvN+' / '+ACHV2800.length+'</div><div>🏭 会社: '+(SET.company?esc2900(SET.company.name)+'（販売'+(SET.company.totalSold||0)+'台）':'未設立')+'</div>'
+    +'<div>📅 始めた日: '+new Date(SET.firstDay).toLocaleDateString('ja-JP')+'</div><div>🎂 レベル称号: '+levelTitle2800(li.lv)+'</div></div>';
+  h+='<div class="row">名前・ひとこと・クルー</div><input id="profName2900" type="text" maxlength="12" value="'+esc2900(SET.names[0]||'プレイヤー')+'" style="width:100%;margin:2px 0;padding:6px" placeholder="名前"><input id="profBio2900" type="text" maxlength="40" value="'+esc2900(pf.bio)+'" style="width:100%;margin:2px 0;padding:6px" placeholder="ひとこと（自己紹介）"><input id="profCrew2900" type="text" maxlength="16" value="'+esc2900(pf.crew)+'" style="width:100%;margin:2px 0;padding:6px" placeholder="クルー名（チーム名）"><button class="btn gold" data-prof-save="1">💾 保存する</button>';
+  h+='<div class="row">アイコン</div><div>'+['🏎','🚗','🔥','🐺','🦁','🏆','👑','💨','🌸','⚡','🎌','🚓','🦄','🐉'].map(ic=>'<button class="btn" data-prof-icon="'+ic+'" style="'+(pf.icon===ic?'outline:3px solid #f59e0b;':'')+'">'+ic+'</button>').join('')+'</div>';
+  h+='<div class="row">クルーのマーク</div><div>'+['🏁','🔥','⚡','🐺','🦁','👑','🌸','💀'].map(ic=>'<button class="btn" data-crew-icon="'+ic+'" style="'+(pf.crewIcon===ic?'outline:3px solid #f59e0b;':'')+'">'+ic+'</button>').join('')+'</div>';
+  h+='<div class="row">称号（条件を満たすと解放・車の上の名前にも出る）</div>'+TITLES2900.map(t=>{const un=t.chk();const eq=SET.title===t.id;return '<div style="border:1px solid #3a3226;border-radius:10px;padding:6px 10px;margin:5px 0;'+(un?'':'opacity:.6')+'">'+(un?'✅':'🔒')+' <b>'+t.t+'</b> <span style="font-size:11px;color:#aaa">'+t.cond+'</span>'+(un?(eq?' <span style="color:#ffd700">装着中</span>':' <button class="btn" data-title-set="'+t.id+'">つける</button>'):'')+'</div>';}).join('')+(SET.title?'<button class="btn" data-title-set="">称号をはずす</button>':'');
+  h+='<div class="row">👥 フレンド帳（よく遊ぶ人の部屋コードを登録）</div><input id="friendName2900" type="text" maxlength="12" style="width:48%;margin:2px 0;padding:6px" placeholder="名前"><input id="friendCode2900" type="text" maxlength="4" inputmode="numeric" style="width:48%;margin:2px 0;padding:6px" placeholder="部屋コード4桁"><button class="btn" data-friend-addform="1">⭐ フレンドに追加</button>';
+  h+=(SET.friends||[]).map((f,i)=>'<div style="border:1px solid #3a3226;border-radius:10px;padding:6px 10px;margin:5px 0"><b>'+esc2900(f.name)+'</b> <span style="font-size:12px;color:#aaa">部屋 '+esc2900(f.code)+'</span><br><button class="btn" data-friend-join="'+i+'">▶ この部屋に入る</button> <button class="btn" data-friend-host="'+i+'">🏠 このコードで部屋を作る</button> <button class="btn" data-friend-del="'+i+'">削除</button></div>').join('');
+  if((SET.netHistory||[]).length){h+='<div class="row">🕘 最近遊んだ人</div>'+SET.netHistory.map((hh,i)=>'<div style="border:1px solid #3a3226;border-radius:10px;padding:6px 10px;margin:5px 0"><b>'+esc2900(hh.name)+'</b> <span style="font-size:12px;color:#aaa">部屋 '+esc2900(hh.code)+' ／ '+new Date(hh.date).toLocaleDateString('ja-JP')+'</span> <button class="btn" data-hist-add="'+i+'">⭐ フレンドに追加</button></div>').join('');}
+  h+='<br><button class="btn" data-prof-close="1">閉じる</button></div>';
+  profilePanel2900.innerHTML=h;
+} // 追加: プロフィール画面ここまで
+function netJoinWithCode2900(code){try{initNet();const inp=document.getElementById('roomInput');if(inp)inp.value=code;const jb=document.getElementById('joinBtn');if(jb&&jb.onclick)jb.onclick();}catch(e){}} // 追加: コードを指定して部屋に入る
+function netHostWithCode2900(code){try{ // 追加: コードを指定して部屋を作る（フレンドのいつものコード用）
+  initNet();const modal=document.getElementById('netModal');const rb=document.getElementById('roomCodeBig');if(rb)rb.textContent=code;netSetStatus('ステータス: ルームを作っています…');
+  try{if(peer){try{peer.destroy();}catch(e){}}peer=new Peer('kt-room-'+code,NET_PEER_CFG2800);}catch(e){netSetStatus('ステータス: 通信の準備に失敗しました。ネット接続を確認してね');return;}
+  peer.on('open',id=>{SET.host=true;SET.netMode=true;SET.np=2;SET.roomCode=code;save();netSetStatus('ステータス: ルーム作成完了！コードは <b>'+code+'</b><br>相手の参加を待っています…');});
+  peer.on('error',err=>{if(err&&err.type==='unavailable-id')netSetStatus('ステータス: コード '+code+' は使用中。相手が先に作っているかも');else netSetStatus('ステータス: 通信エラー ('+(err&&err.type?err.type:'不明')+')');});
+  peer.on('connection',c=>{conn=c;conn.on('open',()=>{netSetStatus('ステータス: 2Pと接続成功！開始します…');setTimeout(()=>{modal.style.display='none';startGame();},1200);});conn.on('data',d=>applyNetData(d));conn.on('error',()=>netSetStatus('ステータス: 相手との接続が切れました'));});
+}catch(e){}} // 追加: コード指定の部屋作りここまで
+function inviteShare2900(){ // 追加: 招待リンクを送る
+  const code=SET.roomCode||((document.getElementById('roomCodeBig')||{}).textContent||''); // 追加: 今の部屋コード
+  if(!code||code==='----'){netSetStatus('ステータス: まず「ルーム作成」を押してね');return;} // 追加: コードがなければ知らせる
+  let url='';try{if(location.protocol.indexOf('http')===0)url=location.origin+location.pathname;}catch(e){} // 追加: ゲームのリンク
+  const link=url?(url+'?room='+code):''; // 追加: 自動で部屋に入れるリンク
+  const text='🌐 R sters pec 01 で一緒に走ろう！'+(link?'\nこのリンクを開くと自動で部屋に入れるよ：\n'+link:'')+'\n部屋コード： '+code+(link?'\n（リンクで入れないときは、ゲームのオンライン対戦からこのコードを入れてね）':''); // 追加: 招待文
+  if(navigator.share){navigator.share({text:text}).catch(()=>{});} // 追加: 共有シート（LINEなどに送れる）
+  else if(navigator.clipboard){navigator.clipboard.writeText(text).then(()=>netSetStatus('ステータス: 招待文をコピーしたよ！LINEなどで送ってね')).catch(()=>netSetStatus('ステータス: 部屋コードは '+code));} // 追加: コピーして送る
+  else netSetStatus('ステータス: 部屋コードは '+code); // 追加: 最低限コードを知らせる
+} // 追加: 招待ここまで
+function recordHistory2900(){const nm=(netRemoteProfile2721&&netRemoteProfile2721.name)||'プレイヤー';const code=SET.roomCode||'';SET.netHistory=SET.netHistory||[];const ex=SET.netHistory.find(x=>x.name===nm&&x.code===code);if(ex)ex.date=Date.now();else SET.netHistory.unshift({name:nm,code:code,date:Date.now()});SET.netHistory=SET.netHistory.slice(0,12);save();} // 追加: 一緒に遊んだ人を覚える
+const partnerCard2900=document.createElement('div');partnerCard2900.id='partnerCard2900'; // 追加: 対戦相手のカード
+function partnerCardStep2900(){ // 追加: メニューに対戦相手のプロフィールカードを出す
+  if(state==='menu'&&SET.netMode&&SET.np===2&&netRemoteProfile2721){const mine=SET.host?0:1;const hostPanel=document.getElementById('panelP'+mine);if(hostPanel&&partnerCard2900.parentNode!==hostPanel)hostPanel.appendChild(partnerCard2900);const rp=netRemoteProfile2721;const h='<div class="card" style="margin-top:8px"><b>👥 対戦相手</b><br>'+(rp.icon||'🏎')+' Lv.'+(rp.lv||1)+' '+(rp.title?'『'+esc2900(rp.title)+'』':'')+' <b>'+esc2900(rp.name||'プレイヤー')+'</b>'+(rp.crew?'<br>'+esc2900(rp.crewIcon||'🏁')+' クルー: '+esc2900(rp.crew):'')+'<br><button class="btn" data-friend-addopp="1">⭐ フレンドに登録</button></div>';if(partnerCard2900._h!==h){partnerCard2900._h=h;partnerCard2900.innerHTML=h;}}
+  else if(partnerCard2900.parentNode){partnerCard2900.remove();}
+} // 追加: 対戦相手カードここまで
+let histConn2900=null; // 追加: 履歴を記録した接続
+setInterval(()=>{try{ // 追加: 招待ボタン・履歴・相手カードの見張り
+  const roomBox=document.getElementById('roomBox');if(roomBox&&!document.getElementById('inviteBtn2900')){const b=document.createElement('button');b.className='btn';b.id='inviteBtn2900';b.textContent='💌 招待リンクを送る';b.onclick=inviteShare2900;roomBox.appendChild(b);} // 追加: 部屋画面に招待ボタンを足す
+  if(SET.netMode&&netRemoteProfile2721&&typeof conn!=='undefined'&&conn&&conn.open&&histConn2900!==conn){histConn2900=conn;recordHistory2900();} // 追加: つながった相手を履歴に残す
+  partnerCardStep2900(); // 追加: 相手カードを更新する
+}catch(e){}},1000); // 追加: 見張りここまで
+setTimeout(()=>{try{ // 追加: 招待リンク（?room=コード）から自動で部屋に入る
+  if(sessionStorage.getItem('kt_net_rejoin')==='1')return; // 追加: 切替後の自動復帰とは混ぜない
+  if(SET.netMode)return; // 追加: すでにオンラインなら何もしない
+  const q=new URLSearchParams(location.search).get('room'); // 追加: リンクの部屋コード
+  if(q&&/^\d{4}$/.test(q)){showComment('💌 招待リンクから部屋 '+q+' に入ります');netJoinWithCode2900(q);} // 追加: 自動で参加する
+}catch(e){}},1500); // 追加: 招待リンクの自動参加ここまで
+document.addEventListener('click',e=>{const t=e.target;if(!t||!t.closest)return; // 追加: プロフィール・称号・フレンドのボタンを処理する
+  const po=t.closest('[data-prof-open]');if(po){renderProfile2900();profilePanel2900.style.display='block';return;} // 追加: プロフィールを開く
+  const pc=t.closest('[data-prof-close]');if(pc){profilePanel2900.style.display='none';return;} // 追加: プロフィールを閉じる
+  const ps=t.closest('[data-prof-save]');if(ps){const nm=(document.getElementById('profName2900')||{}).value;if(nm&&nm.trim()){SET.names[0]=nm.trim();try{rePlate(0);}catch(err){}players[0].nameTagCar=null;}SET.profile.bio=(document.getElementById('profBio2900')||{}).value||'';SET.profile.crew=(document.getElementById('profCrew2900')||{}).value||'';save();renderProfile2900();showComment('💾 プロフィールを保存したよ');return;} // 追加: プロフィールを保存する
+  const pi=t.closest('[data-prof-icon]');if(pi){SET.profile.icon=pi.dataset.profIcon;save();renderProfile2900();return;} // 追加: アイコンを変える
+  const ci=t.closest('[data-crew-icon]');if(ci){SET.profile.crewIcon=ci.dataset.crewIcon;save();renderProfile2900();return;} // 追加: クルーのマークを変える
+  const ts=t.closest('[data-title-set]');if(ts){SET.title=ts.dataset.titleSet||'';save();players.forEach(p=>{p.nameTagCar=null;});renderProfile2900();showComment(SET.title?('🎖 称号『'+equippedTitleText2900()+'』をつけたよ'):'称号をはずしたよ');return;} // 追加: 称号をつける・はずす
+  const fa=t.closest('[data-friend-addform]');if(fa){const nm=((document.getElementById('friendName2900')||{}).value||'').trim();const cd=((document.getElementById('friendCode2900')||{}).value||'').replace(/[^0-9]/g,'');if(!nm||cd.length!==4){showComment('名前と4桁の部屋コードを入れてね');return;}if(!SET.friends.some(f=>f.name===nm&&f.code===cd))SET.friends.push({name:nm,code:cd});save();renderProfile2900();showComment('⭐ '+nm+' をフレンドに追加したよ');return;} // 追加: フレンドを追加する
+  const fj=t.closest('[data-friend-join]');if(fj){const f=SET.friends[+fj.dataset.friendJoin];if(f){profilePanel2900.style.display='none';netJoinWithCode2900(f.code);}return;} // 追加: フレンドの部屋に入る
+  const fh=t.closest('[data-friend-host]');if(fh){const f=SET.friends[+fh.dataset.friendHost];if(f){profilePanel2900.style.display='none';netHostWithCode2900(f.code);}return;} // 追加: フレンドのコードで部屋を作る
+  const fd=t.closest('[data-friend-del]');if(fd){SET.friends.splice(+fd.dataset.friendDel,1);save();renderProfile2900();return;} // 追加: フレンドを消す
+  const ha=t.closest('[data-hist-add]');if(ha){const hh=SET.netHistory[+ha.dataset.histAdd];if(hh&&!SET.friends.some(f=>f.name===hh.name&&f.code===hh.code)){SET.friends.push({name:hh.name,code:hh.code});save();}renderProfile2900();return;} // 追加: 履歴からフレンドに追加する
+  const fo=t.closest('[data-friend-addopp]');if(fo){const nm=(netRemoteProfile2721&&netRemoteProfile2721.name)||'プレイヤー';const cd=SET.roomCode||'';if(cd&&!SET.friends.some(f=>f.name===nm&&f.code===cd)){SET.friends.push({name:nm,code:cd});save();showComment('⭐ '+nm+' をフレンドに登録したよ');}else showComment('登録ずみだよ');return;} // 追加: 今の対戦相手をフレンドに登録する
+}); // 追加: プロフィール・称号・フレンドのクリック処理ここまで
+// ======== 追加: v29.0 ここまで ========
 applyQual();go('main');layout();requestAnimationFrame(loop);
 setTimeout(netAutoRejoin,1200); // 追加: オンライン切替でのリロードなら部屋へ自動で戻る
 })();
