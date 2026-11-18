@@ -1192,7 +1192,7 @@ function mkBibPlate(num){ // 追加: AIゼッケンプレート作成
 function isRaceModeExtra(){return SET.mode==='race'||SET.mode==='split_race'||SET.mode==='gt500'||SET.mode==='ta'||RT.circuit;} // 追加: レース判定（追加機能用）
 function raceProgressOf(laps,idx){return (laps||0)*N+((idx-START_I+N)%N);} // 追加: 周回＋コース位置を1つの進行度にする
 function updateBibPlates(){ // 追加: ゼッケンプレートの生成と位置更新
-  if(!isRaceModeExtra()&&!onFoot){TR.forEach(t=>{if(t.bibPlate)t.bibPlate.visible=false;if(t.aiNameLabel)t.aiNameLabel.visible=false;});return;} // 追加: レース以外で歩いていないときはゼッケンと名前を非表示（歩いているときは出す）
+  if(!isRaceModeExtra()&&!onFoot){TR.forEach(t=>{if(t.bibPlate)t.bibPlate.visible=false;if(t.aiNameLabel)t.aiNameLabel.visible=!!t.on;});return;} // 追加: レース以外はゼッケンだけ隠す（車名はコンピュータ車すべてに常時表示）
   TR.forEach((t,i)=>{ // 追加: 全AI車を巡回
     if(!t.on){if(t.bibPlate)t.bibPlate.visible=false;if(t.aiNameLabel)t.aiNameLabel.visible=false;return;} // 追加: 出走していない車は隠す
     if(!t.bibPlate){t.bibNum=i+3;t.bibPlate=mkBibPlate(t.bibNum);} // 追加: AIに3番からのゼッケンを割り振る
@@ -3079,6 +3079,10 @@ function buildCity(){ // 追加: メガシティの街並みを作る
         cityData.buildings.push({x:bx,z:bz,w:80,d:80,park:true}); // 追加: ミニマップ用の公園
         continue; // 追加: 公園にはビルを建てない
       } // 追加: 公園ここまで
+      if(bi===0&&bj===1&&SET.route===7){ // 追加: トラングラの駐車場の区画にはビルを建てない（駐車場との被り防止）
+        cityData.buildings.push({x:bx,z:bz,w:80,d:80,park:true}); // 追加: ミニマップ用に空き地として覚える
+        continue; // 追加: 駐車場の区画は空けておく
+      } // 追加: 駐車場の区画ここまで
       const tw=towerBlocks[bi+','+bj]; // 追加: タワーの区画か調べる
       if(tw){ // 追加: タワーの区画ならタワーだけ建てる
         const m=detailBuilding(g,bx-22,bz-25,26,26,tw.h,tw.c,bi*7+bj); // 追加: 窓のあるランドマークタワー（区画の角に置いて真ん中の十字路を空ける）
@@ -3413,20 +3417,20 @@ function buildParkingLot(){ // 追加: トラングラの大駐車場を作る�
   try{ // 追加: 安全に作る
     const cx=cityData.cx,cz=cityData.cz; // 追加: 街の中心
     const lx=cx-165,lz=cz+38; // 追加: 駐車場の中心（広場の南、区画いっぱいに広く）
-    MEET_LOT={x:lx,z:lz,hw:46,hd:54}; // 追加: 範囲を覚える
+    MEET_LOT={x:lx,z:lz,hw:52,hd:60}; // 追加: 範囲を覚える（もっと広く）
     const g=new THREE.Group(); // 追加: 駐車場のグループ
-    const pave=new THREE.Mesh(new THREE.BoxGeometry(92,0.04,108),LM(0x333a45));pave.position.set(lx,CITY_Y-0.02,lz);g.add(pave); // 追加: 大きな舗装（表面は街の地面と同じ高さ）
-    const rows=[{dz:-26,rot:0},{dz:0,rot:Math.PI},{dz:26,rot:0}]; // 追加: 3列（向きを変えて自然に）
+    const pave=new THREE.Mesh(new THREE.BoxGeometry(104,0.04,120),LM(0x333a45));pave.position.set(lx,CITY_Y-0.02,lz);g.add(pave); // 追加: 大きな舗装（表面は街の地面と同じ高さ）
+    const rows=[{dz:-32,rot:0},{dz:0,rot:Math.PI},{dz:32,rot:0}]; // 追加: 3列（向きを変えて自然に）
     const pool=[42,34,19,39,47,49,53,57,62,64,65,31,22,36,38,41,45,48,43,35,20,25,74,142,135,141,188,182,184,128,145,195,199,190,55,56,61,51,52,50,0,4,131,187,6,169,134,132,158]; // 追加: 集まりそうな車（スポーツ多め、日常車も少し）
     for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const tmp=pool[i];pool[i]=pool[j];pool[j]=tmp;} // 追加: 並びを混ぜる
     let pi2=0; // 追加: 置いた車の数
     rows.forEach((row,ri)=>{ // 追加: 列ごとに作る
       const rz=lz+row.dz; // 追加: 列の位置
-      const ln=new THREE.Mesh(new THREE.BoxGeometry(88,0.02,0.18),LM(0xf8fafc));ln.position.set(lx,CITY_Y+0.01,rz+(row.rot===0?-2.6:2.6));g.add(ln); // 追加: 列の白線
-      for(let sIdx=0;sIdx<24;sIdx++){ // 追加: 駐車マス
-        const sx=lx-41.4+sIdx*3.6; // 追加: マスの位置
+      const ln=new THREE.Mesh(new THREE.BoxGeometry(100,0.02,0.18),LM(0xf8fafc));ln.position.set(lx,CITY_Y+0.01,rz+(row.rot===0?-2.6:2.6));g.add(ln); // 追加: 列の白線
+      for(let sIdx=0;sIdx<28;sIdx++){ // 追加: 駐車マス
+        const sx=lx-48.6+sIdx*3.6; // 追加: マスの位置
         const tick=new THREE.Mesh(new THREE.BoxGeometry(0.15,0.02,5),LM(0xf8fafc));tick.position.set(sx-1.8,CITY_Y+0.01,rz);g.add(tick); // 追加: マスの区切り線
-        if(ri===0&&sIdx>=19){MEET_SPOTS.push({x:sx,z:rz,rot:row.rot,taken:null});continue;} // 追加: 入口に近い5マスはAI集会用に空ける
+        if(ri===0&&sIdx>=23){MEET_SPOTS.push({x:sx,z:rz,rot:row.rot,taken:null});continue;} // 追加: 入口に近い5マスはAI集会用に空ける
         if(Math.random()<0.42)continue; // 追加: 空きマスも残して自然に
         const ci2=pool[pi2%pool.length];pi2++; // 追加: 止める車
         const dm=makeCar({car:ci2,body:Math.floor(Math.random()*10),hood:0,wheel:0,low:false});const mm=dm.car;mm.position.set(sx,CITY_Y,rz);mm.rotation.y=row.rot;scene.add(mm); // 追加: 車を置く
@@ -3434,18 +3438,18 @@ function buildParkingLot(){ // 追加: トラングラの大駐車場を作る�
         const sp=aiNameSprite((CARS[ci2]||{}).n||'');sp.visible=false;mm.add(sp);meetLabels.push({sp:sp,x:sx,z:rz}); // 追加: 車名ラベル（駐車場に入ると見える）
       } // 追加: マスここまで
     }); // 追加: 列ここまで
-    [[-44,-50],[0,-50],[44,-50],[-44,50],[0,50],[44,50]].forEach(o=>{ // 追加: 照明ポール6本
+    [[-50,-56],[0,-56],[50,-56],[-50,56],[0,56],[50,56]].forEach(o=>{ // 追加: 照明ポール6本
       const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.18,7,8),LM(0x475569));pole.position.set(lx+o[0],CITY_Y+3.5,lz+o[1]);g.add(pole); // 追加: 柱
       const lamp=new THREE.Mesh(new THREE.SphereGeometry(0.45,10,8),new THREE.MeshBasicMaterial({color:0xfff7cc}));lamp.position.set(lx+o[0],CITY_Y+7.1,lz+o[1]);g.add(lamp); // 追加: ランプ
     }); // 追加: 照明ここまで
     const ac=document.createElement('canvas');ac.width=512;ac.height=96;const ag=ac.getContext('2d'); // 追加: 入口アーチの絵
     ag.fillStyle='#0f172a';ag.fillRect(0,0,512,96);ag.fillStyle='#38bdf8';ag.font='bold 44px sans-serif';ag.textAlign='center';ag.textBaseline='middle';ag.fillText('🚗 TRANGULA MEET PARK',256,50); // 追加: アーチの文字
-    const arch=new THREE.Mesh(new THREE.PlaneGeometry(16,3),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(ac),side:THREE.DoubleSide}));arch.position.set(lx+45,5.6,cz);arch.rotation.y=Math.PI/2;g.add(arch); // 追加: 入口のアーチ看板（東の入口）
-    [-2.6,2.6].forEach(o=>{const ap=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,5.6,8),LM(0x334155));ap.position.set(lx+45,CITY_Y+2.8,cz+o);g.add(ap);}); // 追加: アーチの柱
+    const arch=new THREE.Mesh(new THREE.PlaneGeometry(16,3),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(ac),side:THREE.DoubleSide}));arch.position.set(lx+51,5.6,cz);arch.rotation.y=Math.PI/2;g.add(arch); // 追加: 入口のアーチ看板（東の入口）
+    [-2.6,2.6].forEach(o=>{const ap=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,5.6,8),LM(0x334155));ap.position.set(lx+51,CITY_Y+2.8,cz+o);g.add(ap);}); // 追加: アーチの柱
     const pc=document.createElement('canvas');pc.width=128;pc.height=128;const pg=pc.getContext('2d'); // 追加: P看板の絵
     pg.fillStyle='#2563eb';pg.fillRect(0,0,128,128);pg.fillStyle='#fff';pg.font='bold 84px sans-serif';pg.textAlign='center';pg.textBaseline='middle';pg.fillText('P',64,68); // 追加: 青いP
-    const psign=new THREE.Mesh(new THREE.PlaneGeometry(2.5,2.5),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(pc)}));psign.position.set(lx+43,3.6,lz-50);g.add(psign); // 追加: Pの看板
-    const ppole=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,3,8),LM(0x334155));ppole.position.set(lx+43,1.5+CITY_Y,lz-50);g.add(ppole); // 追加: 看板の柱
+    const psign=new THREE.Mesh(new THREE.PlaneGeometry(2.5,2.5),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(pc)}));psign.position.set(lx+49,3.6,lz-56);g.add(psign); // 追加: Pの看板
+    const ppole=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,3,8),LM(0x334155));ppole.position.set(lx+49,1.5+CITY_Y,lz-56);g.add(ppole); // 追加: 看板の柱
     scene.add(g); // 追加: 駐車場を置く
   }catch(e){} // 追加: 失敗してもゲームは止めない
 } // 追加: 駐車場ここまで
@@ -3794,8 +3798,11 @@ function expandTraffic(){ // 追加: AI車を48台に増やす
 expandTraffic(); // 追加: 起動時にAI車を増やす
 function upgradeNpcCars(){ // 追加: AI車をショップの実車にする
   try{ // 追加: 安全に変える
-    const idx=[...Array(CARS.length).keys()]; // 追加: 車の番号を集める
-    for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const tmp=idx[i];idx[i]=idx[j];idx[j]=tmp;} // 追加: 車をシャッフルする
+    const allIdx=[...Array(CARS.length).keys()]; // 追加: 車の番号を集める
+    for(let i=allIdx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const tmp=allIdx[i];allIdx[i]=allIdx[j];allIdx[j]=tmp;} // 追加: 車をシャッフルする
+    const midIdx=allIdx.filter(i=>{const o=ovrOf(CARS[i]);return o>=40&&o<=60;}); // 追加: OVR40〜60の車（日常の交通の中心）
+    const restIdx=allIdx.filter(i=>{const o=ovrOf(CARS[i]);return o<40||o>60;}); // 追加: それ以外の車
+    const idx=midIdx.concat(restIdx); // 追加: OVR40〜60を先に割り当てる（フリー走行の交通は手頃なグレードが中心になる）
     TR.forEach((t,i)=>{ // 追加: AI車ごとに実車を割り当てる
       const ci=idx[i%CARS.length];const cr=CARS[ci]; // 追加: このAI車の車種
       const cfg={car:ci,body:Math.floor(Math.random()*COL.length),hood:Math.floor(Math.random()*HOOD.length),wheel:Math.floor(Math.random()*WHL.length),low:Math.random()<0.3}; // 追加: 色とホイールを決める
