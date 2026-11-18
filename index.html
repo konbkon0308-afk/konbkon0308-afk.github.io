@@ -5096,6 +5096,25 @@ function playerTagStep(){ // 追加: 自分の車にも名前を出す
 document.addEventListener('click',e=>{const t=e.target;if(!t||!t.getAttribute)return;if(t.getAttribute('data-talk'))talkAdvance();if(t.getAttribute('data-spotset'))photoSetCar();if(t.getAttribute('data-spotshot'))photoShoot();}); // 追加: 話す・車セット・撮影ボタンの処理
 const _pedStep2718=pedStep; // 追加: 元の通行人処理を覚える
 pedStep=function(dt){_pedStep2718(dt);try{ownersStep(dt);photoSpotStep();playerTagStep();}catch(e){}}; // 追加: オーナー・フォトスポット・自分の名前も毎フレーム見る
+const NET_EMPTY_KEYS={up:[],dn:[],l:[],r:[],hb:[],rs:''}; // 追加: 相手の車用の空のキー（自分の入力で相手の車が動かないように）
+function netFixControls(){ // 追加: オンラインでは自分の車だけを自分の操作で動かす
+  const mine=SET.netMode?(SET.host?0:1):-1; // 追加: 自分のプレイヤー番号（ホスト=1P、ゲスト=2P）
+  for(let k=0;k<2;k++){ // 追加: プレイヤーごとにキーを割り当てる
+    players[k].keys=SET.netMode?(k===mine?KEYS[0]:NET_EMPTY_KEYS):KEYS[k]; // 追加: オンライン中は自分の車に1Pの操作、相手の車は無操作（相手のデータで動く）。ローカルでは元に戻す
+  } // 追加: キー割り当てここまで
+} // 追加: オンライン操作の割り当てここまで
+const _startGame2719=startGame; // 追加: 元のゲーム開始を覚える
+startGame=function(){_startGame2719();netFixControls();}; // 追加: ゲーム開始時にオンラインの操作割り当てを直す
+const _renderGame2719=renderGame; // 追加: 元の描画を覚える
+renderGame=function(){ // 追加: オンラインでは自分の車のカメラで全画面に描く
+  if(SET.netMode&&SET.np===2){ // 追加: オンライン対戦のときだけ
+    const H=innerHeight;renderer.setScissorTest(true); // 追加: 全画面描画の準備
+    const k=SET.host?0:1,c=players[k].cam; // 追加: 自分の車のカメラ（ホスト=1P、ゲスト=2P）
+    players.forEach(p=>{p.plate.visible=p.k!==k;}); // 追加: 相手の名前プレートだけ出す（自分のは隠す）
+    renderer.setViewport(0,0,innerWidth,H);renderer.setScissor(0,0,innerWidth,H); // 追加: 全画面にする
+    c.aspect=innerWidth/H;c.updateProjectionMatrix();renderer.render(scene,c); // 追加: 自分の視点で描く
+  }else _renderGame2719(); // 追加: それ以外は元の描画
+}; // 追加: オンライン描画ここまで
 const _sr101=showRaceResult; // 追加: リザルト表示を覚える（101用）
 showRaceResult=function(){ // 追加: リザルトのついでにGTグランプリの連続優勝を数える
   _sr101(); // 追加: これまでのリザルト処理
