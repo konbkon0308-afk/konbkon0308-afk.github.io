@@ -2163,6 +2163,7 @@ function menuExtraStep(){ // 追加: メニューに売却・修理パネルを�
       h='<button class="btn" data-uiscale="1">📱 UIを'+(document.body.classList.contains('small-ui')?'大きくする':'小さくする')+'</button>'+h; // 追加: スマホ用UIサイズの切替ボタンを先頭に足す
       // 追加: 修理ボタンは廃止（修理機能なし）
       owned.forEach(ci=>{ // 追加: 持っている車ごとに売却ボタンを出す
+        if(!CARS[ci])return; // 追加: 車種データがない番号は飛ばす（壊れた参照で画面が止まらないように）
         const price=Math.max(10000,Math.floor((CARS[ci].price||0)*0.5)); // 追加: 売却価格は買値の半分
         const dis=owned.length<=1||ci===equipped; // 追加: 最後の1台と装備中の車は売れない
         h+='<button class="btn" data-sell="'+ci+'" '+(dis?'disabled':'')+'>💰 '+CARS[ci].n+' を売る（¥'+price.toLocaleString()+'）'+(ci===equipped?'［装備中］':'')+'</button>'; // 追加: 売却ボタン
@@ -2584,6 +2585,21 @@ CARS.push( // 追加: 各ショップに車を5台ずつ追加する
 {n:'ロータス エヴァイヤ',src:'2000PSのEVハイパーカー。世界最強クラス。',cc:0,ps:2000,kg:1680,drv:2,fw:0.48,wb:2.65,red:9000,gr:[3.0,1.7,1.2,0.85,0.65],fd:3.0,cyl:0,rot:0,sc:[1.12,0.84,1.14],shapeType:8,price:300000000,dealer:'luxury'},
 {n:'ブガッティ ボライド',src:'1600PSのサーキット専用機。1240kgの軽さ。',cc:7993,ps:1600,kg:1240,drv:2,fw:0.44,wb:2.75,red:8000,gr:[3.0,1.7,1.2,0.85,0.65],fd:3.1,cyl:16,rot:0,sc:[1.12,0.8,1.14],shapeType:8,price:450000000,dealer:'luxury'}
 ); // 追加: 車追加ここまで
+// 追加: 会社で設計した車を起動時に車種リストへ戻す（設計車は作ったときにだけ追加されるので、リロードすると消えて番号がずれてしまうため）
+if(SET.company&&Array.isArray(SET.company.designs)){ // 追加: 会社と設計があるときだけ戻す
+  SET.company.designs.forEach(d=>{ // 追加: 設計した車ごとに
+    try{ // 追加: 失敗してもゲームは止めない
+      if(!d||typeof d.carIdx!=='number'||!isFinite(d.carIdx))return; // 追加: 番号が壊れていたら飛ばす
+      if(CARS[d.carIdx]&&CARS[d.carIdx].designBody!==undefined)return; // 追加: すでに車種リストにあれば何もしない
+      const cc=companyCost(d); // 追加: ボディ情報を取り直す
+      const entry={n:d.name,src:'自分の会社で設計した車。',cc:2000,ps:d.ps,kg:cc.body.kg,drv:0,fw:0.5,wb:2.47,red:7500,gr:[3.6,2.1,1.5,1.1,0.85],fd:4.08,cyl:4,rot:0,sc:[1,1,1],shapeType:cc.body.st,price:d.price,dealer:'brand',designBody:cc.body.id,designWing:d.wing,designColor:d.color,designLight:d.light,designLogo:(SET.company.logo||'🏭'),designLogoPos:d.logoPos}; // 追加: 設計車の車種データ（作ったときと同じ内容）
+      if(d.carIdx===CARS.length){CARS.push(entry);} // 追加: 末尾がその番号なら追加する
+      else if(d.carIdx<CARS.length&&!CARS[d.carIdx]){CARS[d.carIdx]=entry;} // 追加: 番号の場所が空いていれば差し込む
+      else{const oldIdx=d.carIdx;const newIdx=CARS.length;CARS.push(entry);d.carIdx=newIdx;(SET.ownedCars||[]).forEach(list=>{if(Array.isArray(list))for(let i=0;i<list.length;i++)if(list[i]===oldIdx)list[i]=newIdx;});CFG.forEach(c=>{if(c&&c.car===oldIdx)c.car=newIdx;});} // 追加: 番号が他の車で埋まっていたら末尾に追加して、持っている車と装備の番号を付け替える
+    }catch(e){} // 追加: 失敗しても次へ
+  }); // 追加: 設計車を戻すここまで
+  for(let k=0;k<2;k++){if(SET.company.designs.some(d=>d.carIdx===CFG[k].car)){try{rebuild(k);}catch(e){}}} // 追加: 設計車に乗っていたら車を作り直す（起動直後は仮の姿で作られているため）
+}
 const PLATE_COLORS=[{id:'white',n:'白',bg:'#f8fafc',fg:'#166534',bd:'#166534'},{id:'yellow',n:'黄',bg:'#facc15',fg:'#111827',bd:'#111827'},{id:'green',n:'緑',bg:'#15803d',fg:'#ffffff',bd:'#ffffff'},{id:'black',n:'黒',bg:'#111827',fg:'#facc15',bd:'#facc15'},{id:'pink',n:'ピンク',bg:'#f9a8d4',fg:'#111827',bd:'#111827'},{id:'blue',n:'青',bg:'#2563eb',fg:'#ffffff',bd:'#ffffff'}]; // 追加: ナンバープレートの色
 if(!SET.plate)SET.plate=[{num:'88-88',col:'white'},{num:'88-88',col:'white'}]; // 追加: ナンバープレートの設定
 function plateOf(k){const pp=(SET.plate&&SET.plate[k])||{num:'88-88',col:'white'};return {num:pp.num||'88-88',col:pp.col||'white'};} // 追加: プレイヤーのナンバープレート設定
