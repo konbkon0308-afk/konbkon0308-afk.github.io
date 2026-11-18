@@ -399,6 +399,8 @@ const ROUTES=[
 {n:'🏁 富士スピードウェイ風 (超ロングストレート＆後半セクション)',R:380,m0:0,m1:0,mh:0,hs:0,bs:0,cw:100,circuit:true,ctype:'fuji'},
 {n:'🔥鈴鹿風 国際コース (連続S字・スプーン・130R)',R:400,m0:0,m1:0,mh:0,hs:0,bs:0,cw:100,circuit:true,ctype:'suzuka'}
 ];
+ROUTES.push({n:'🌆トラングラサーキット・にぎわいの街 (集合広場あり)',R:390,m0:2.1,m1:5.6,mh:45,hs:1.2,bs:1.1,cw:105,circuit:false,ctype:'megacity',lively:true}); // 追加: 街マップを1つ追加する（RTが決まる前に追加して、選んだときに正しく読み込まれるようにする）
+ROUTES.push({n:'🏁 セクショナルファンクション (複合テクニカルサーキット)',R:370,m0:1.4,m1:4.2,mh:0,hs:1.25,bs:1.15,cw:100,circuit:true,ctype:'sectional'}); // 追加: 新サーキット「セクショナルファンクション」を追加する（RTが決まる前に追加する）
 const RT=ROUTES[SET.route]||ROUTES[0];
 document.title='R sters pec 01'; // 追加: ブラウザのタブのタイトルも新しい名前にする
 ROUTES[0].n='🌆弐鳳グランドサーキット・交差点＆高速・PA網 (全9店舗巡り)'; // 追加: コース名を変える
@@ -408,7 +410,7 @@ ROUTES[3].n='🏁 グランドロールストラック (超高速ストレート
 ROUTES[4].n='🏁 酒立レーシングウェイ (急勾配＆難関S字)'; // 追加: コース名を変える
 ROUTES[5].n='🏁 ルナルサーキット (超ロングストレート＆後半セクション)'; // 追加: コース名を変える
 ROUTES[6].n='🔥ファンダムGT サーキット (連続S字・スプーン・130R)'; // 追加: コース名を変える
-ROUTES.push({n:'🌆トラングラサーキット・にぎわいの街 (集合広場あり)',R:390,m0:2.1,m1:5.6,mh:45,hs:1.2,bs:1.1,cw:105,circuit:false,ctype:'megacity',lively:true}); // 追加: 街マップを1つ追加する（栄えた集合マップ）
+// 追加: トラングラサーキットはRTが決まる前に追加済み（ROUTES定義のすぐ下）
 ROUTES[7].n='🌆トラングラサーキット・にぎわいの街 (集合広場あり)'; // 追加: 新マップの名前
 const TOUCH=('ontouchstart' in window)||(window.matchMedia&&matchMedia('(pointer:coarse)').matches);
 
@@ -2135,7 +2137,7 @@ function courseSceneryGroup(){ // 追加: コースの背景を作る
 } // 追加: コースの背景ここまで
 courseSceneryGroup(); // 追加: コースの背景を作る
 function updateBannerText(){ // 追加: スタートの横断幕の文字を新しいコース名にする
-  const txt=SET.route===7?'TRANGLA CIRCUIT GP':({megacity:'NIHOU GRAND CIRCUIT GP',highway:'WELLA DE TRACK GP',mtn:'HILLS OF RAM GP',lemans:'GRAND ROLLSTRACK GP',spa:'SAKADACHI RACING WAY GP',fuji:'LUNAR CIRCUIT GP',suzuka:'FANDOM GT CIRCUIT GP'}[RT.ctype]||'GRAND CIRCUIT GP'); // 追加: 新しい横断幕の文字（トラングラは専用）
+  const txt=SET.route===7?'TRANGLA CIRCUIT GP':({megacity:'NIHOU GRAND CIRCUIT GP',highway:'WELLA DE TRACK GP',mtn:'HILLS OF RAM GP',lemans:'GRAND ROLLSTRACK GP',spa:'SAKADACHI RACING WAY GP',fuji:'LUNAR CIRCUIT GP',suzuka:'FANDOM GT CIRCUIT GP',sectional:'SECTIONAL FUNCTION GP'}[RT.ctype]||'GRAND CIRCUIT GP'); // 追加: 新しい横断幕の文字（トラングラは専用）
   scene.traverse(o=>{ // 追加: 横断幕を探す
     if(o.geometry&&o.geometry.type==='PlaneGeometry'&&o.geometry.parameters&&o.geometry.parameters.width===23&&o.material&&o.material.map){ // 追加: 横断幕の板
       const c=document.createElement('canvas');c.width=1024;c.height=192;const g2=c.getContext('2d'); // 追加: 新しい絵
@@ -2494,7 +2496,7 @@ function netEnhance(){ // 追加: ネット部屋UIをちゃんと作る
     const code=netRoomCode(); // 追加: 4桁コード
     const rb=document.getElementById('roomCodeBig');if(rb)rb.textContent=code; // 追加: コードを大きく表示
     netSetStatus('ステータス: ルームを作っています…'); // 追加: 状態を表示
-    try{peer=new Peer('kt-room-'+code);}catch(e){netSetStatus('ステータス: 通信の準備に失敗しました。ネット接続を確認してね');return;} // 追加: 短いIDでPeerを作る
+    try{peer=new Peer('kt-room-'+code,NET_PEER_CFG2800);}catch(e){netSetStatus('ステータス: 通信の準備に失敗しました。ネット接続を確認してね');return;} // 追加: 短いIDでPeerを作る（STUN複数指定で安定化）
     peer.on('open',id=>{SET.host=true;SET.netMode=true;SET.np=2;SET.roomCode=code;save();netSetStatus('ステータス: ルーム作成完了！コードは <b>'+code+'</b><br>相手の参加を待っています…');}); // 追加: ルーム完成（部屋コードを保存）
     peer.on('error',err=>{ // 追加: エラー表示
       if(err&&err.type==='unavailable-id'){netSetStatus('ステータス: コード '+code+' は使用中。もう一度「ルーム作成」を押してね');} // 追加: コード被り
@@ -2512,7 +2514,7 @@ function netEnhance(){ // 追加: ネット部屋UIをちゃんと作る
     const raw=(document.getElementById('roomInput').value||'').trim().replace(/[^0-9]/g,''); // 追加: 数字だけ取り出す
     if(raw.length!==4){netSetStatus('ステータス: 4桁の部屋コードを入れてね');return;} // 追加: コード確認
     netSetStatus('ステータス: ルーム '+raw+' に接続中…'); // 追加: 状態を表示
-    try{peer=new Peer();}catch(e){netSetStatus('ステータス: 通信の準備に失敗しました。ネット接続を確認してね');return;} // 追加: 自分のPeerを作る
+    try{peer=new Peer(undefined,NET_PEER_CFG2800);}catch(e){netSetStatus('ステータス: 通信の準備に失敗しました。ネット接続を確認してね');return;} // 追加: 自分のPeerを作る（STUN複数指定で安定化）
     let done=false; // 追加: 接続できたか
     setTimeout(()=>{if(!done)netSetStatus('ステータス: つながりませんでした。コードが正しいか、ホストが待機中か確認してね');},12000); // 追加: 12秒でタイムアウト
     peer.on('open',id=>{ // 追加: 自分の準備ができたら
@@ -2660,14 +2662,14 @@ function addCarDetail(m,c){ // 追加: 車のディテールを凝らす
 } // 追加: 車ディテールここまで
 const _makeCarOrig=makeCar;makeCar=function(c){const m=_makeCarOrig(c);addCarDetail(m,c);applyDecalFor(m,c);try{restyleCar(m,CARS[c.car]||CARS[0],c);}catch(e){}try{addBrandFace(m,CARS[c.car]||CARS[0]);}catch(e){}return m;}; // 追加: 車を作るたびにディテールとデカールと実車の見た目を足す
 const DECALS=[ // 追加: デカールショップでしか買えないデカール一覧
-  {id:'flame',n:'🔥 炎ストライプ',col:0xe63946,price:30000},
-  {id:'sakura',n:'🌸 桜ストライプ',col:0xec4899,price:35000},
-  {id:'gt',n:'🏁 GTストライプ',col:0x2563eb,price:25000},
-  {id:'no88',n:'8️⃣ ゼッケン88ライン',col:0xf59e0b,price:40000},
-  {id:'camo',n:'🪖 カモフラライン',col:0x065f46,price:45000},
-  {id:'checker',n:'🏁 チェッカーライン',col:0x111827,price:30000},
-  {id:'dragon',n:'🐉 ドラゴンライン',col:0x7c3aed,price:60000},
-  {id:'gold',n:'👑 ゴールドライン',col:0xf59e0b,price:80000}
+  {id:'flame',n:'🔥 炎ストライプ',col:0xe63946,price:120000},
+  {id:'sakura',n:'🌸 桜ストライプ',col:0xec4899,price:140000},
+  {id:'gt',n:'🏁 GTストライプ',col:0x2563eb,price:100000},
+  {id:'no88',n:'8️⃣ ゼッケン88ライン',col:0xf59e0b,price:160000},
+  {id:'camo',n:'🪖 カモフラライン',col:0x065f46,price:180000},
+  {id:'checker',n:'🏁 チェッカーライン',col:0x111827,price:120000},
+  {id:'dragon',n:'🐉 ドラゴンライン',col:0x7c3aed,price:240000},
+  {id:'gold',n:'👑 ゴールドライン',col:0xf59e0b,price:320000}
 ]; // 追加: デカール一覧ここまで
 if(!SET.decals)SET.decals=[]; // 追加: 持っているデカール
 if(!SET.decalEq)SET.decalEq=[null,null]; // 追加: 装着中のデカール
@@ -2809,17 +2811,17 @@ function buildDecalStore(){ // 追加: デカールショップの建物を作�
 } // 追加: デカールショップ建物ここまで
 buildDecalStore(); // 追加: デカールショップの建物を置く
 const PARTS2=[ // 追加: 専門パーツ一覧
-  {id:'ecu',n:'💻 ECUチューン',d:'最高出力を上げる',prices:[0,40000,80000,140000]},
-  {id:'brake',n:'🛑 ブレーキパッド',d:'ブレーキを強くする',prices:[0,30000,60000,100000]},
-  {id:'nos',n:'💨 NOSキット',d:'全開加速を上げる',prices:[0,50000,100000,180000]},
-  {id:'fly',n:'⚙️ 軽量フライホイール',d:'加速の立ち上がりを上げる',prices:[0,35000,70000,120000]},
-  {id:'lsd2',n:'🔧 LSD強化',d:'コーナー出口のトラクションを上げる',prices:[0,45000,90000,150000]},
-  {id:'carbon',n:'🪶 カーボンパーツ',d:'軽くなって加速と最高速が上がる',prices:[0,60000,120000,200000]},
-  {id:'susp',n:'🔧 サスペンション',d:'コーナーで曲がりやすくなる',prices:[0,50000,100000,170000]},
-  {id:'clutch',n:'⚙️ 強化クラッチ',d:'加速の立ち上がりが速くなる',prices:[0,40000,80000,130000]},
-  {id:'cooler',n:'❄️ インタークーラー',d:'ターボの馬力が上がる',prices:[0,55000,110000,190000]},
-  {id:'cage',n:'🛡️ ロールケージ',d:'ボディが固くなって曲がりやすくなる',prices:[0,45000,90000,150000]},
-  {id:'battery',n:'🔋 軽量バッテリー',d:'軽くなって加速と最高速が上がる',prices:[0,30000,60000,100000]}
+  {id:'ecu',n:'💻 ECUチューン',d:'最高出力を上げる',prices:[0,200000,400000,700000]},
+  {id:'brake',n:'🛑 ブレーキパッド',d:'ブレーキを強くする',prices:[0,150000,300000,500000]},
+  {id:'nos',n:'💨 NOSキット',d:'全開加速を上げる',prices:[0,250000,500000,900000]},
+  {id:'fly',n:'⚙️ 軽量フライホイール',d:'加速の立ち上がりを上げる',prices:[0,175000,350000,600000]},
+  {id:'lsd2',n:'🔧 LSD強化',d:'コーナー出口のトラクションを上げる',prices:[0,225000,450000,750000]},
+  {id:'carbon',n:'🪶 カーボンパーツ',d:'軽くなって加速と最高速が上がる',prices:[0,300000,600000,1000000]},
+  {id:'susp',n:'🔧 サスペンション',d:'コーナーで曲がりやすくなる',prices:[0,250000,500000,850000]},
+  {id:'clutch',n:'⚙️ 強化クラッチ',d:'加速の立ち上がりが速くなる',prices:[0,200000,400000,650000]},
+  {id:'cooler',n:'❄️ インタークーラー',d:'ターボの馬力が上がる',prices:[0,275000,550000,950000]},
+  {id:'cage',n:'🛡️ ロールケージ',d:'ボディが固くなって曲がりやすくなる',prices:[0,225000,450000,750000]},
+  {id:'battery',n:'🔋 軽量バッテリー',d:'軽くなって加速と最高速が上がる',prices:[0,150000,300000,500000]}
 ]; // 追加: 専門パーツここまで
 if(!SET.parts)SET.parts=[{ecu:0,brake:0,nos:0,fly:0,lsd2:0,carbon:0,susp:0,clutch:0,cooler:0,cage:0,battery:0},{ecu:0,brake:0,nos:0,fly:0,lsd2:0,carbon:0,susp:0,clutch:0,cooler:0,cage:0,battery:0}]; // 追加: 持っている専門パーツ
 SET.parts.forEach(pp=>{PARTS2.forEach(pt=>{if(pp[pt.id]==null)pp[pt.id]=0;});}); // 追加: パーツのレベルを補う
@@ -4557,7 +4559,7 @@ function netAutoRejoin(){ // 追加: リロード後にオンラインの部屋�
       hTries++; // 追加: 回数を数える
       if(hTries>6){netSetStatus('ステータス: 部屋に戻れませんでした');netLeaveRoom(false);showComment('🔌 部屋に戻れなかったから1人プレイに戻したよ');return;} // 追加: 6回だめなら1人プレイに戻す（落ちたままにしない）
       let opened=false; // 追加: 部屋が開けたかどうか
-      try{if(peer){try{peer.destroy();}catch(e){}}peer=new Peer('kt-room-'+SET.roomCode);}catch(e){setTimeout(tryHost,2000);return;} // 追加: 同じコードで部屋を作る（前のPeerは壊してから）
+      try{if(peer){try{peer.destroy();}catch(e){}}peer=new Peer('kt-room-'+SET.roomCode,NET_PEER_CFG2800);}catch(e){setTimeout(tryHost,2000);return;} // 追加: 同じコードで部屋を作る（前のPeerは壊してから・STUN複数指定）
       peer.on('open',id=>{opened=true;netSetStatus('ステータス: ルーム作成完了！相手の参加を待っています…');}); // 追加: 部屋完成
       peer.on('connection',c=>{ // 追加: 相手が来たら
         conn=c; // 追加: 接続を覚える
@@ -4572,7 +4574,7 @@ function netAutoRejoin(){ // 追加: リロード後にオンラインの部屋�
     const tryJoin=()=>{ // 追加: 部屋に入る
       tries++; // 追加: 回数を数える
       if(tries>10){netSetStatus('ステータス: 部屋につながりませんでした');netLeaveRoom(false);showComment('🔌 部屋に戻れなかったから1人プレイに戻したよ');return;} // 追加: 10回でやめて1人プレイに戻す（落ちたままにしない）
-      try{if(peer){try{peer.destroy();}catch(e){}}peer=new Peer();}catch(e){setTimeout(tryJoin,2000);return;} // 追加: 自分のPeerを作る（前のPeerは壊してから）
+      try{if(peer){try{peer.destroy();}catch(e){}}peer=new Peer(undefined,NET_PEER_CFG2800);}catch(e){setTimeout(tryJoin,2000);return;} // 追加: 自分のPeerを作る（前のPeerは壊してから・STUN複数指定）
       peer.on('open',id=>{ // 追加: 自分の準備ができたら
         conn=peer.connect('kt-room-'+SET.roomCode); // 追加: ホストに接続する
         conn.on('open',()=>{netSetStatus('ステータス: ホストへ接続成功！開始します…');setTimeout(()=>{startGame();},1200);}); // 追加: 接続成功
@@ -5196,7 +5198,7 @@ function netUiStep2720(){ // 追加: オンラインのボタンや同期を毎�
   netLeaveBtnGame.style.display=(SET.netMode&&state==='game')?'block':'none'; // 追加: ゲーム中だけ切断ボタンを出す
   if(SET.netMode&&typeof conn!=='undefined'&&conn&&conn.open)netWasOpen2720=true; // 追加: つながったことを覚える
   if(SET.netMode&&typeof conn!=='undefined'&&conn&&conn.open&&netProfileConn2721!==conn){netProfileConn2721=conn;netSendProfile2721();netApplyOwnProfile2721();if(netRemoteProfile2721)netApplyRemoteProfile2721();} // 追加: つながったら自分のデータを送って、自分の車も自分のデータで作り直す
-  if(SET.netMode&&netWasOpen2720&&!(typeof conn!=='undefined'&&conn&&conn.open)){netLeaveRoom(false);showComment('🔌 相手との接続が切れたよ');return;} // 追加: 相手が消えたら1人に戻る
+  if(SET.netMode&&netWasOpen2720&&!(typeof conn!=='undefined'&&conn&&conn.open)){if(!netLostAt2800)netLostAt2800=Date.now();if(Date.now()-netLostAt2800>12000){netLeaveRoom(false);showComment('🔌 相手との接続が切れたよ');}return;} // 追加: 切れても12秒は再接続を待つ（安定化）
   netSyncT2720+=0.016; // 追加: 同期の間隔を数える
   if(netSyncT2720>2){netSyncT2720=0;netSyncSend2720();} // 追加: 2秒ごとにホストの設定を送って食い違いを防ぐ
   if(state==='menu'&&SET.netMode&&SET.np===2){ // 追加: オンラインメニューのとき
@@ -5307,7 +5309,7 @@ function raceCfgHTML(k){ // 追加: レース設定画面を作る
   let h='<h2>🏁 レース設定 ['+pName+']</h2>'; // 追加: タイトル
   h+='<div class="row">レースの種類</div><div class="chips">'+raceModes.map(m=>'<button class="chip '+(SET.mode===m[0]?'on':'')+'" data-racemode="'+m[0]+'" data-pk="'+k+'">'+m[1]+'</button>').join('')+'</div>'; // 追加: モードのボタン
   if(SET.netMode){ // 追加: オンライン中はコース変更を相手にも送る
-    h+='<div class="row">サーキット / オープンワールド（オンライン：相手も切り替わります）</div><div class="chips">'+ROUTES.map((r,i)=>'<button class="chip '+(SET.route===i?'on':'')+'" data-raceroute="'+i+'" data-pk="'+k+'">'+r.n+'</button>').join('')+'</div>'; // 追加: オンライン用コースボタン
+    h+='<div class="row">サーキット / オープンワールド（オンライン：相手も切り替わります）</div><div class="chips">'+allowedRoutes2800(SET.mode).map(i=>'<button class="chip '+(SET.route===i?'on':'')+'" data-raceroute="'+i+'" data-pk="'+k+'">'+ROUTES[i].n+'</button>').join('')+'</div>'; // 追加: オンライン用コースボタン（モードで走れるコースだけ）
   }else{ // 追加: オフラインは通常のコース選択
     h+=ch('サーキット / オープンワールド',ROUTES.map(r=>r.n),SET.route,'route',k); // 追加: コースのチップ
   } // 追加: コース選択ここまで
@@ -5350,7 +5352,7 @@ document.addEventListener('click',e=>{ // 追加: フリー走行・レースモ
     return; // 追加: ここまで
   } // 追加: 入口ボタンここまで
   const rm=t.closest('[data-racemode]'); // 追加: レースの種類ボタンか
-  if(rm){SET.mode=rm.dataset.racemode;save();draw();return;} // 追加: モードを変えて描き直す
+  if(rm){const nm=rm.dataset.racemode;if(!allowedRoutes2800(nm).includes(SET.route)){showComment('🚧 そのモードでは今のコースは走れないよ（フリー・逃走・追跡は街だけ）');return;} SET.mode=nm;save();draw();return;} // 追加: モードを変えて描き直す（コース制限つき）
   const rr=t.closest('[data-raceroute]'); // 追加: オンライン用コースボタンか
   if(rr){const ri=+rr.dataset.raceroute;if(ri!==SET.route)netSwitchSend(ri,SET.mode);return;} // 追加: 相手にも送って両方切り替える
   const rs=t.closest('[data-racestart]'); // 追加: レース開始ボタンか
@@ -5870,6 +5872,144 @@ function loop(t){
   document.getElementById('chatSendBtn').onclick=sendChatMsg; // 追加: 送信ボタン
   document.getElementById('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();sendChatMsg();}e.stopPropagation();}); // 追加: Enterでも送る
 })(); // 追加: チャットの画面ここまで
+// ======== 追加: v28.0 やり込み要素（コース制限・カスタムレース・実績・レベル・高難度ミッション・オンライン安定化・順位の正しさ） ========
+if(MS.winR8===undefined)MS.winR8=0; // 追加: 新コースの優勝記録を初期化
+if(MS.podR8===undefined)MS.podR8=0; // 追加: 新コースの表彰台記録を初期化
+if(SET.xp===undefined)SET.xp=0; // 追加: 経験値
+if(!SET.achv)SET.achv={}; // 追加: 実績の解除状態
+if(SET.custRace===undefined)SET.custRace=null; // 追加: カスタムレースの実行中設定
+if(!SET.custCfg)SET.custCfg={laps:3,grid:12,cls:'same'}; // 追加: カスタムレースの設定
+const CITY_ROUTES2800=[0,7]; // 追加: 街コース（弐鳳・トラングラ）
+function allowedRoutes2800(mode){return (mode==='free'||mode==='chase'||mode==='police')?CITY_ROUTES2800.slice():ROUTES.map((r,i)=>i);} // 追加: モードごとに走れるコース（フリー・逃走・追跡は街だけ、レース系は全部）
+function levelOf2800(xp){let lv=1,need=150,rest=xp||0;while(lv<30&&rest>=need){rest-=need;lv++;need=150*lv;}return {lv:lv,rest:rest,need:need};} // 追加: 経験値からレベルを計算する
+function levelTitle2800(lv){return lv>=25?'👑 伝説のドライバー':lv>=20?'🏆 グランプリ王者':lv>=15?'🔥 プロレーサー':lv>=10?'🐺 サーキットの狼':lv>=5?'🏎 街の走り屋':'🔰 駆け出しドライバー';} // 追加: レベルの称号
+function addXp2800(n){if(!n||n<=0)return;const before=levelOf2800(SET.xp).lv;SET.xp+=n;const after=levelOf2800(SET.xp).lv;if(after>before){const bonus=after*50000;SET.money[0]+=bonus;showComment('🎉 レベルアップ！ Lv.'+after+' '+levelTitle2800(after)+' 到達ボーナス +¥'+bonus.toLocaleString());}save();} // 追加: 経験値を足す（レベルアップでボーナス）
+MISSIONS.push( // 追加: 高難度ミッション（104〜116）
+{t:'セクショナル制覇',d:'セクショナルファンクションで優勝しよう。',chk:()=>[MS.winR8,1],rw:{money:500000}}, // 追加: 高難度ミッション104
+{t:'GT500マスター',d:'GT500で通算10勝しよう。',chk:()=>[MS.gtWin,10],rw:{money:1000000}}, // 追加: 高難度ミッション105
+{t:'GT500レジェンド',d:'GT500で通算20勝しよう。',chk:()=>[MS.gtWin,20],rw:{money:2000000}}, // 追加: 高難度ミッション106
+{t:'ドリフトキング',d:'ドリフトスコア30000以上を出そう。',chk:()=>[Math.floor(MS.driftBest),30000],rw:{money:800000}}, // 追加: 高難度ミッション107
+{t:'最高速チャレンジ',d:'最高速420km/h以上を出そう。',chk:()=>[Math.floor(MS.topSpeed),420],rw:{money:800000}}, // 追加: 高難度ミッション108
+{t:'長距離ドライバー',d:'総走行距離2000kmに到達しよう。',chk:()=>[Math.floor(MS.drive/1000),2000],rw:{money:1000000}}, // 追加: 高難度ミッション109
+{t:'大富豪への道',d:'所持金¥50,000,000に到達しよう。',chk:()=>[Math.floor((SET.money[0]||0)/1000000),50],rw:{logo:'💰'}}, // 追加: 高難度ミッション110
+{t:'コレクター極',d:'車を150台集めよう。',chk:()=>[mOwnCount(),150],rw:{money:2000000}}, // 追加: 高難度ミッション111
+{t:'全車コンプリート',d:'車を215台すべて集めよう。',chk:()=>[mOwnCount(),215],rw:{money:5000000,logo:'🌟'}}, // 追加: 高難度ミッション112
+{t:'レースマスター',d:'レースで通算100勝しよう。',chk:()=>[MS.raceWin,100],rw:{money:3000000}}, // 追加: 高難度ミッション113
+{t:'表彰台の鬼',d:'レースで通算150回表彰台に上がろう。',chk:()=>[MS.racePod,150],rw:{money:1500000}}, // 追加: 高難度ミッション114
+{t:'歩く伝説',d:'徒歩で合計5km歩こう。',chk:()=>[Math.floor(MS.walk),5000],rw:{money:300000}}, // 追加: 高難度ミッション115
+{t:'会社王',d:'会社で車を合計300台売ろう。',chk:()=>[SET.company?(SET.company.totalSold||0):0,300],rw:{money:2000000,logo:'👑'}} // 追加: 高難度ミッション116
+); // 追加: 高難度ミッションここまで
+const ACHV2800=[ // 追加: 実績の一覧
+{id:'win1',t:'初勝利',d:'レースで初めて優勝する',chk:()=>MS.raceWin>=1,prog:()=>[Math.min(1,MS.raceWin),1],rw:{money:50000},rwTxt:'¥50,000'}, // 追加: 実績
+{id:'win10',t:'勝ち星10',d:'レースで通算10勝する',chk:()=>MS.raceWin>=10,prog:()=>[Math.min(10,MS.raceWin),10],rw:{money:200000},rwTxt:'¥200,000'}, // 追加: 実績
+{id:'win50',t:'勝ち星50',d:'レースで通算50勝する',chk:()=>MS.raceWin>=50,prog:()=>[Math.min(50,MS.raceWin),50],rw:{money:1000000},rwTxt:'¥1,000,000'}, // 追加: 実績
+{id:'win100',t:'勝ち星100',d:'レースで通算100勝する',chk:()=>MS.raceWin>=100,prog:()=>[Math.min(100,MS.raceWin),100],rw:{money:3000000},rwTxt:'¥3,000,000'}, // 追加: 実績
+{id:'champ8',t:'全コース覇者',d:'元からの8コースすべてで優勝する',chk:()=>[0,1,2,3,4,5,6,7].every(r=>(MS['winR'+r]||0)>=1),prog:()=>[[0,1,2,3,4,5,6,7].filter(r=>(MS['winR'+r]||0)>=1).length,8],rw:{money:1000000},rwTxt:'¥1,000,000'}, // 追加: 実績
+{id:'sec1',t:'セクショナル覇者',d:'セクショナルファンクションで優勝する',chk:()=>(MS.winR8||0)>=1,prog:()=>[Math.min(1,MS.winR8||0),1],rw:{money:300000},rwTxt:'¥300,000'}, // 追加: 実績
+{id:'gt10',t:'GT500の星',d:'GT500で通算10勝する',chk:()=>MS.gtWin>=10,prog:()=>[Math.min(10,MS.gtWin),10],rw:{money:1000000},rwTxt:'¥1,000,000'}, // 追加: 実績
+{id:'cars10',t:'コレクター見習い',d:'車を10台集める',chk:()=>(SET.ownedCars[0]||[]).length>=10,prog:()=>[(SET.ownedCars[0]||[]).length,10],rw:{money:100000},rwTxt:'¥100,000'}, // 追加: 実績
+{id:'cars30',t:'コレクター',d:'車を30台集める',chk:()=>(SET.ownedCars[0]||[]).length>=30,prog:()=>[(SET.ownedCars[0]||[]).length,30],rw:{money:300000},rwTxt:'¥300,000'}, // 追加: 実績
+{id:'cars100',t:'大コレクター',d:'車を100台集める',chk:()=>(SET.ownedCars[0]||[]).length>=100,prog:()=>[(SET.ownedCars[0]||[]).length,100],rw:{money:1500000},rwTxt:'¥1,500,000'}, // 追加: 実績
+{id:'cars215',t:'全車制覇',d:'車を215台すべて集める',chk:()=>(SET.ownedCars[0]||[]).length>=215,prog:()=>[(SET.ownedCars[0]||[]).length,215],rw:{money:5000000},rwTxt:'¥5,000,000'}, // 追加: 実績
+{id:'rich10',t:'億万長者への一歩',d:'所持金¥10,000,000に到達する',chk:()=>(SET.money[0]||0)>=10000000,prog:()=>[Math.floor((SET.money[0]||0)/1000000),10],rw:{logo:'💰'},rwTxt:'ロゴ💰'}, // 追加: 実績
+{id:'rich100',t:'真の億万長者',d:'所持金¥100,000,000に到達する',chk:()=>(SET.money[0]||0)>=100000000,prog:()=>[Math.floor((SET.money[0]||0)/1000000),100],rw:{logo:'👑'},rwTxt:'ロゴ👑'}, // 追加: 実績
+{id:'drv100',t:'ドライブ100km',d:'総走行距離100kmに到達する',chk:()=>MS.drive>=100000,prog:()=>[Math.floor(MS.drive/1000),100],rw:{money:100000},rwTxt:'¥100,000'}, // 追加: 実績
+{id:'drv1000',t:'ドライブ1000km',d:'総走行距離1000kmに到達する',chk:()=>MS.drive>=1000000,prog:()=>[Math.floor(MS.drive/1000),1000],rw:{money:500000},rwTxt:'¥500,000'}, // 追加: 実績
+{id:'spd300',t:'300km/hクラブ',d:'最高速300km/h以上を出す',chk:()=>MS.topSpeed>=300,prog:()=>[Math.floor(MS.topSpeed),300],rw:{money:100000},rwTxt:'¥100,000'}, // 追加: 実績
+{id:'spd400',t:'400km/hクラブ',d:'最高速400km/h以上を出す',chk:()=>MS.topSpeed>=400,prog:()=>[Math.floor(MS.topSpeed),400],rw:{money:500000},rwTxt:'¥500,000'}, // 追加: 実績
+{id:'dri20k',t:'ドリフト名人',d:'ドリフトスコア20000以上を出す',chk:()=>MS.driftBest>=20000,prog:()=>[Math.floor(MS.driftBest),20000],rw:{money:300000},rwTxt:'¥300,000'}, // 追加: 実績
+{id:'mis25',t:'ミッション25',d:'ミッションを25個クリアする',chk:()=>SET.missionIdx>=25,prog:()=>[SET.missionIdx,25],rw:{money:100000},rwTxt:'¥100,000'}, // 追加: 実績
+{id:'mis50',t:'ミッション50',d:'ミッションを50個クリアする',chk:()=>SET.missionIdx>=50,prog:()=>[SET.missionIdx,50],rw:{money:300000},rwTxt:'¥300,000'}, // 追加: 実績
+{id:'misall',t:'ミッション全制覇',d:'ミッションをすべてクリアする',chk:()=>SET.missionIdx>=MISSIONS.length,prog:()=>[SET.missionIdx,MISSIONS.length],rw:{money:2000000},rwTxt:'¥2,000,000'}, // 追加: 実績
+{id:'founder',t:'起業家',d:'自動車会社を設立する',chk:()=>!!SET.company,prog:()=>[SET.company?1:0,1],rw:{money:100000},rwTxt:'¥100,000'}, // 追加: 実績
+{id:'sales100',t:'売れっ子メーカー',d:'会社で車を合計100台売る',chk:()=>(SET.company?(SET.company.totalSold||0):0)>=100,prog:()=>[SET.company?(SET.company.totalSold||0):0,100],rw:{money:500000},rwTxt:'¥500,000'}, // 追加: 実績
+{id:'gacha50',t:'ガチャ好き',d:'ガチャを50回まわす',chk:()=>MS.gacha>=50,prog:()=>[MS.gacha,50],rw:{money:200000},rwTxt:'¥200,000'}, // 追加: 実績
+{id:'walk1k',t:'街歩き1km',d:'徒歩で合計1km歩く',chk:()=>MS.walk>=1000,prog:()=>[Math.floor(MS.walk),1000],rw:{money:50000},rwTxt:'¥50,000'}, // 追加: 実績
+{id:'photo8',t:'写真家',d:'写真掲示板に8枚貼る',chk:()=>MS.photos>=8,prog:()=>[MS.photos,8],rw:{money:50000},rwTxt:'¥50,000'}, // 追加: 実績
+{id:'online1',t:'オンライン初参戦',d:'オンライン対戦でレースを完走する',chk:()=>MS.online>=1,prog:()=>[Math.min(1,MS.online),1],rw:{money:100000},rwTxt:'¥100,000'} // 追加: 実績
+]; // 追加: 実績の一覧ここまで
+let lastSold2800=-1,lastDrive2800=-1,lastEscape2800=-1,lastArrest2800=-1; // 追加: 経験値計算用の前回値
+function achvStep2800(){try{ // 追加: 実績のチェックと、会社・距離・逃走などの経験値
+  ACHV2800.forEach(a=>{if(!SET.achv[a.id]&&a.chk()){SET.achv[a.id]=1;if(a.rw.money)SET.money[0]+=a.rw.money;if(a.rw.logo){SET.bonusLogos=SET.bonusLogos||[];if(!SET.bonusLogos.includes(a.rw.logo))SET.bonusLogos.push(a.rw.logo);}showComment('🏆 実績解除！「'+a.t+'」 報酬: '+a.rwTxt);addXp2800(50);save();}}); // 追加: 実績を解除して報酬を出す
+  const sold=SET.company?(SET.company.totalSold||0):0;if(lastSold2800<0)lastSold2800=sold;if(sold>lastSold2800){addXp2800((sold-lastSold2800)*10);lastSold2800=sold;} // 追加: 会社で売れたら経験値
+  if(lastDrive2800<0)lastDrive2800=MS.drive||0;const dd=(MS.drive||0)-lastDrive2800;if(dd>=1000){addXp2800(5*Math.floor(dd/1000));lastDrive2800=MS.drive;} // 追加: 1km走るごとに経験値
+  if(lastEscape2800<0)lastEscape2800=MS.escape||0;if((MS.escape||0)>lastEscape2800){addXp2800(80*((MS.escape||0)-lastEscape2800));lastEscape2800=MS.escape;} // 追加: 逃走成功で経験値
+  if(lastArrest2800<0)lastArrest2800=MS.arrest||0;if((MS.arrest||0)>lastArrest2800){addXp2800(80*((MS.arrest||0)-lastArrest2800));lastArrest2800=MS.arrest;} // 追加: 逮捕成功で経験値
+}catch(e){}} // 追加: 実績チェックここまで
+setInterval(achvStep2800,1000); // 追加: 1秒ごとに実績をチェックする
+const _routeSet2800=setters.route; // 追加: 今のコース変更を覚える
+setters.route=function(i){if(!allowedRoutes2800(SET.mode).includes(i)){showComment('🚧 そのコースは今のモードでは走れないよ（フリー・逃走・追跡は街だけ）');return;}return _routeSet2800(i);}; // 追加: モードに合わないコースは選べないようにする
+const _modeSet2800=setters.mode; // 追加: 今のモード変更を覚える
+setters.mode=function(i){const m=['free','ta','race','chase','police','split_race','gt500'][i];if(m&&!allowedRoutes2800(m).includes(SET.route)){showComment('🚧 そのモードでは今のコースは走れないよ（フリー・逃走・追跡は街だけ）');return;}return _modeSet2800(i);}; // 追加: コースに合わないモードは選べないようにする
+let custStartArmed2800=false; // 追加: カスタムレース開始の印
+const _sg2800=startGame; // 追加: 今のゲーム開始を覚える
+startGame=function(){ // 追加: 開始時のコース制限とカスタム引き継ぎ
+  if(!SET.netMode&&!allowedRoutes2800(SET.mode).includes(SET.route)){SET.route=CITY_ROUTES2800[0];save();try{armAutoStart(true);}catch(e){}safeReload();return;} // 追加: モードに合わないコースなら街に戻して読み直す
+  if(custStartArmed2800){custStartArmed2800=false;}else if(SET.mode==='race'&&SET.custRace){SET.custRace=null;save();} // 追加: 普通のレースを始めたらカスタム設定は消す
+  return _sg2800(); // 追加: 元の開始処理
+}; // 追加: ゲーム開始の包み直しここまで
+const _nss2800=netSwitchSend; // 追加: 今のオンライン切替送信を覚える
+netSwitchSend=function(route,mode){if(!allowedRoutes2800(mode||SET.mode).includes(route)){showComment('🚧 そのモードではそのコースは走れないよ');return;}return _nss2800(route,mode);}; // 追加: オンライン切替もコース制限する
+const _tr2800=trafficReset; // 追加: 今の交通リセットを覚える
+trafficReset=function(){const r=_tr2800();try{ // 追加: カスタムレースの出場車に差し替える
+  if(SET.custRace&&SET.mode==='race'&&!SET.netMode&&SET.custRace.cls&&SET.custRace.cls!=='same'){let pool=null;const cls=SET.custRace.cls;if(cls==='kei')pool=KEI_SET.slice();else if(cls==='gt')pool=[12,13,14,15,16,17,175,176,177,178,179];else if(cls==='super')pool=HYPER_SET.slice();else if(cls==='sport')pool=CARS.map((c,i)=>i).filter(i=>{const o=ovrOf(CARS[i]);return o>=55&&o<=78;});else pool=CARS.map((c,i)=>i);if(pool&&pool.length){TR.filter(t=>t.on).forEach(t=>{const fOld=aiSpeedFactor(t);swapNpcCar(t,pool[(Math.random()*pool.length)|0]);const fNew=aiSpeedFactor(t);if(fOld>0)t.maxSpd*=fNew/fOld;});}} // 追加: 選んだクラスから相手の車を出す（速さも車に合わせる）
+}catch(e){}return r;}; // 追加: 交通リセットの包み直しここまで
+function fixRacePos2800(){const list=[];for(let k=0;k<SET.np;k++){const pl=players[k];list.push({pl:pl,score:raceProgressOf(pl.laps,pl.ti)});}TR.forEach(t=>{if(t.on)list.push({pl:null,score:raceProgressOf(t.laps||0,Math.floor(t.s))});});list.sort((a,b)=>b.score-a.score);list.forEach((e,i)=>{if(e.pl)e.pl.pos=i+1;});} // 追加: AIを含めた本当の順位を計算し直す（今までは人間だけで順位を付け直して常に1位になっていた）
+function awardRaceXp2800(){if(SET.mode==='ta'){addXp2800(50);return;}if(SET.mode!=='race'&&SET.mode!=='gt500'&&SET.mode!=='split_race')return;const pos=players[0].pos||1;let xp=pos===1?120:pos===2?80:pos===3?60:40;if(SET.mode==='gt500')xp=Math.round(xp*1.5);if(SET.custRace&&(SET.custRace.laps||2)>2)xp+=(SET.custRace.laps-2)*20;addXp2800(xp);} // 追加: レース結果で経験値を出す
+const _srr2800=showRaceResult; // 追加: 今の結果表示を覚える
+showRaceResult=function(){ // 追加: カスタム周回の継続・本当の順位・経験値を足す
+  if(SET.custRace&&SET.mode==='race'&&!SET.netMode&&(SET.custRace.laps||2)>2){const pl0=players[0];if(pl0.finished&&pl0.laps<(SET.custRace.laps||2)){pl0.finished=false;showComment('🏁 あと'+((SET.custRace.laps||2)-pl0.laps)+'周！');return;}} // 追加: カスタムレースは目標周回まで終わらない
+  if(SET.np===1&&(SET.mode==='race'||SET.mode==='gt500'||SET.mode==='split_race')){try{fixRacePos2800();}catch(e){}} // 追加: 本当の順位で結果を出す
+  const r=_srr2800(); // 追加: 元の結果表示
+  try{awardRaceXp2800();}catch(e){} // 追加: 経験値を出す
+  if(SET.custRace){SET.custRace=null;save();} // 追加: カスタムレースの設定を片付ける
+  return r; // 追加: 結果を返す
+}; // 追加: 結果表示の包み直しここまで
+const _mc2800=missionClaim; // 追加: 今のミッション受け取りを覚える
+missionClaim=function(){const b=SET.missionIdx;const r=_mc2800();if(SET.missionIdx>b)addXp2800(100);return r;}; // 追加: ミッション達成で経験値
+const _d1e2800=d1End; // 追加: 今のD1終了を覚える
+d1End=function(){let won=false;try{won=d1&&d1.score>d1.rivalScore;}catch(e){}const r=_d1e2800();if(won)addXp2800(80);return r;}; // 追加: D1勝利で経験値
+function custStep2800(){try{if(SET.custRace&&SET.mode==='race'&&state==='game'&&!SET.netMode){const pl=players[0];const target=SET.custRace.laps||2;if(pl.lapEl)pl.lapEl.innerHTML='LAP '+Math.min(target,(pl.laps||0)+1)+'/'+target+'　順位: '+pl.pos+'位<br>'+fmt(pl.lt)+' (BEST '+fmt(pl.best)+')';if(target===1&&!pl.finished&&pl.laps>=1&&cd<=0){pl.finished=true;showRaceResult();}}}catch(e){}} // 追加: カスタムレースの周回表示と1周レースのゴール処理
+const _ped2800=pedStep; // 追加: 今の歩行者処理を覚える
+pedStep=function(dt){const r=_ped2800(dt);custStep2800();return r;}; // 追加: カスタムレースの見張りを足す
+const achvPanel2800=document.createElement('div');achvPanel2800.id='achvPanel2800';achvPanel2800.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:95;display:none;overflow:auto;padding:16px;';document.body.appendChild(achvPanel2800); // 追加: 実績パネルを作る
+function renderAchv2800(){achvPanel2800.innerHTML='<div style="max-width:560px;margin:0 auto;background:#14100a;border:1px solid #c9a227;border-radius:14px;padding:16px;color:#f5eeda"><h2>🏆 実績（'+ACHV2800.filter(a=>SET.achv[a.id]).length+'/'+ACHV2800.length+'）</h2>'+ACHV2800.map(a=>{const un=!!SET.achv[a.id];const pr=a.prog?a.prog():null;return '<div style="border:1px solid #3a3226;border-radius:10px;padding:8px 10px;margin:6px 0;'+(un?'':'opacity:.65')+'">'+(un?'✅':'🔒')+' <b>'+a.t+'</b>　<span style="font-size:12px">'+a.d+'</span>'+(pr?' <span style="color:#c9a227;font-size:12px">'+pr[0]+'/'+pr[1]+'</span>':'')+'<br><span style="font-size:12px;color:#9be15d">報酬: '+a.rwTxt+'</span></div>';}).join('')+'<button class="btn" data-achv-close="1">閉じる</button></div>';} // 追加: 実績パネルを描く
+function yarikomiBar2800(){if(state!=='menu')return;const p=document.getElementById('panelSingle');if(!p)return;let bar=document.getElementById('yarikomiBar2800');if(!bar){bar=document.createElement('div');bar.id='yarikomiBar2800';p.insertBefore(bar,p.firstChild);}const li=levelOf2800(SET.xp);const achvN=ACHV2800.filter(a=>SET.achv[a.id]).length;const h='<div style="font-size:13px;margin-bottom:6px">Lv.<b>'+li.lv+'</b> '+levelTitle2800(li.lv)+'　XP '+li.rest+'/'+li.need+'　🏆実績 '+achvN+'/'+ACHV2800.length+'</div><button class="btn gold" data-custopen="1">🏁 カスタムレース</button> <button class="btn" data-achv-open="1">🏆 実績を見る</button>';if(bar._h!==h){bar._h=h;bar.innerHTML=h;}} // 追加: メニュー上部にレベルと実績のバーを出す
+const _mes2800=menuExtraStep; // 追加: 今のメニュー追加処理を覚える
+menuExtraStep=function(){const r=_mes2800();try{yarikomiBar2800();}catch(e){}return r;}; // 追加: やり込みバーを足す
+function custCfgHTML(k){const cc=SET.custCfg;let h='<h2>🏁 カスタムレース</h2>';h+='<div class="row">周回数</div><div class="chips">'+[1,2,3,5,10].map(n=>'<button class="chip '+(cc.laps===n?'on':'')+'" data-cust-laps="'+n+'">'+n+'周</button>').join('')+'</div>';h+='<div class="row">台数（AI敵車）</div><div class="chips">'+[4,8,12,16,20,24].map(n=>'<button class="chip '+(cc.grid===n?'on':'')+'" data-cust-grid="'+n+'">'+n+'台</button>').join('')+'</div>';h+='<div class="row">出場車（相手の車）</div><div class="chips">'+[['same','🎯 同格'],['kei','🚐 軽自動車だけ'],['sport','🏎 スポーツカー'],['super','🚀 スーパーカー'],['gt','🔥 GT/GT500'],['random','🎲 ランダム']].map(c=>'<button class="chip '+(cc.cls===c[0]?'on':'')+'" data-cust-cls="'+c[0]+'">'+c[1]+'</button>').join('')+'</div>';h+='<div class="row">コース（レース系は全部OK）</div><div class="chips">'+ROUTES.map((r,i)=>'<button class="chip '+(SET.route===i?'on':'')+'" data-cust-route="'+i+'">'+r.n+'</button>').join('')+'</div>';h+=ch('AI難易度',['初級','中級','上級 (プロ)'],SET.aiDiff,'aiDiff',k);h+='<button class="btn gold" data-custstart="1">🏁 カスタムレース開始</button> <button class="btn" data-custback="1">← もどる</button>';return h;} // 追加: カスタムレース設定画面を作る
+const _bmh2800=buildMenuHTML; // 追加: 今のメニュー作りを覚える
+buildMenuHTML=function(k,curScreen){if(curScreen==='custcfg')return custCfgHTML(k);return _bmh2800(k,curScreen);}; // 追加: カスタムレース画面を足す
+document.addEventListener('click',e=>{const t=e.target;if(!t||!t.closest)return; // 追加: やり込み要素のボタンを処理する
+  const ao=t.closest('[data-achv-open]');if(ao){renderAchv2800();achvPanel2800.style.display='block';return;} // 追加: 実績を開く
+  const ac=t.closest('[data-achv-close]');if(ac){achvPanel2800.style.display='none';return;} // 追加: 実績を閉じる
+  const co=t.closest('[data-custopen]');if(co){if(SET.netMode||SET.np!==1){showComment('カスタムレースは1人用だよ');return;}screen='custcfg';draw();return;} // 追加: カスタムレース画面を開く
+  const cb=t.closest('[data-custback]');if(cb){screen='main';draw();return;} // 追加: メニューに戻る
+  const cl=t.closest('[data-cust-laps]');if(cl){SET.custCfg.laps=+cl.dataset.custLaps;save();draw();return;} // 追加: 周回数を変える
+  const cg=t.closest('[data-cust-grid]');if(cg){SET.custCfg.grid=+cg.dataset.custGrid;save();draw();return;} // 追加: 台数を変える
+  const cx=t.closest('[data-cust-cls]');if(cx){SET.custCfg.cls=cx.dataset.custCls;save();draw();return;} // 追加: 出場車を変える
+  const cr=t.closest('[data-cust-route]');if(cr){setters.route(+cr.dataset.custRoute);return;} // 追加: コースを変える
+  const cs=t.closest('[data-custstart]');if(cs){SET.mode='race';SET.gridCount=SET.custCfg.grid;SET.custRace={laps:SET.custCfg.laps,cls:SET.custCfg.cls};custStartArmed2800=true;save();startGame();return;} // 追加: カスタムレースを始める
+}); // 追加: やり込み要素のクリック処理ここまで
+const NET_PEER_CFG2800={config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun2.l.google.com:19302'},{urls:'stun:stun3.l.google.com:19302'}]}}; // 追加: 接続安定化の設定（STUNサーバーを複数指定してつながりやすくする）
+let netLostAt2800=0,netRedialAt2800=0,netRedialTries2800=0; // 追加: 切断検知と再接続の状態
+function netRedial2800(){try{if(peer){try{peer.destroy();}catch(e){}}peer=new Peer(undefined,NET_PEER_CFG2800);peer.on('open',()=>{try{conn=peer.connect('kt-room-'+SET.roomCode);conn.on('open',()=>{netSetStatus('ステータス: 再接続できたよ！');netRedialTries2800=0;});conn.on('data',d=>applyNetData(d));conn.on('close',()=>{});conn.on('error',()=>{});}catch(e){}});peer.on('error',()=>{});}catch(e){}} // 追加: ゲストが部屋にかけ直す（回線が切れたとき用）
+setInterval(()=>{try{ // 追加: 接続の見張り（切れたら自動でつなぎ直す）
+  if(!SET.netMode)return; // 追加: オンラインでなければ何もしない
+  if(typeof peer!=='undefined'&&peer&&peer.disconnected){try{peer.reconnect();}catch(e){}} // 追加: サーバーから切れていたら戻す
+  const open=(typeof conn!=='undefined'&&conn&&conn.open); // 追加: つながっているか
+  if(open){netLostAt2800=0;netRedialTries2800=0;return;} // 追加: つながっていたら状態を戻す
+  if(state!=='game')return; // 追加: ゲーム中だけ再接続する
+  if(!netLostAt2800)netLostAt2800=Date.now(); // 追加: 切れた時刻を覚える
+  const lostFor=Date.now()-netLostAt2800; // 追加: 切れてからの時間
+  if(SET.host){if(lostFor>2500&&lostFor<3600)netSetStatus('ステータス: 相手の再接続を待っています…');} // 追加: ホストは待つ
+  else if(lostFor>2500&&Date.now()-netRedialAt2800>5000&&netRedialTries2800<3){netRedialAt2800=Date.now();netRedialTries2800++;netSetStatus('ステータス: 再接続を試しています…（'+netRedialTries2800+'/3）');netRedial2800();} // 追加: ゲストは最大3回かけ直す
+}catch(e){}},1000); // 追加: 接続の見張りここまで
+const _and2800=applyNetData; // 追加: 今のデータ受信を覚える
+applyNetData=function(data){try{if(data&&data.S&&(!isFinite(data.S.x)||!isFinite(data.S.z)||!isFinite(data.S.h))){const c={};for(const kk in data)c[kk]=data[kk];c.S=null;data=c;}}catch(e){}return _and2800(data);}; // 追加: 壊れた位置データは捨てる（相手の車が消える・飛ぶのを防ぐ）
+let sndFlip2800=false;const _snd2800=sendNetData; // 追加: 今のデータ送信を覚える
+sendNetData=function(){if(SET.netMode){sndFlip2800=!sndFlip2800;if(sndFlip2800)return;}return _snd2800();}; // 追加: 送信を半分の頻度にして回線を軽くする（安定化）
+// ======== 追加: v28.0 ここまで ========
 applyQual();go('main');layout();requestAnimationFrame(loop);
 setTimeout(netAutoRejoin,1200); // 追加: オンライン切替でのリロードなら部屋へ自動で戻る
 })();
