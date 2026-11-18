@@ -2021,7 +2021,7 @@ function companyStep(dt){ // 追加: 会社の販売を進める（30秒で1日�
     const fair=d.cost*1.3; // 追加: ちょうどいい値段
     const ratio=d.price/fair; // 追加: 値段の割高さ（1でちょうどいい）
     const demand=cc.body.market*(appeal/60)*Math.max(0.2,1.6-ratio)*(1+SET.company.rep/100)*(0.7+Math.random()*0.6); // 追加: 需要（人気・コスパ・評判で決まる）
-    const units=Math.max(0,Math.round(demand)); // 追加: 売れた台数
+    const units=Math.min(3,Math.max(0,Math.round(demand))); // 追加: 売れた台数（1日最大3台まで。お金が無限に増えるのを防ぐ）
     if(units>0){ // 追加: 売れたときだけ
       const profit=(d.price-d.cost)*units; // 追加: 利益（売値−製造コスト）×台数
       const tax=Math.floor(profit*0.2); // 追加: 法人税20%
@@ -4968,7 +4968,7 @@ function missionStep(dt){ // 追加: ミッションの進行を毎フレーム�
       else{const dd=Math.hypot(S.x-_ms.px,S.z-_ms.pz);if(dd<50&&cd<=0)MS.drive+=dd;} // 追加: 走った距離（ワープは数えない）
       _ms.px=S.x;_ms.pz=S.z; // 追加: 位置を覚える
     } // 追加: ゲーム中の記録ここまで
-    if(SET.missionIdx<MISSIONS.length){const m=MISSIONS[SET.missionIdx];const pr=m.chk();if(pr&&pr[0]>=pr[1]){const got=missionGrant(m.rw);SET.missionIdx++;missionFlash='🎉 ミッション「'+m.t+'」クリア！ 報酬：'+got;try{showComment('🏆 ミッションクリア！ '+m.t);}catch(e){}save();}} // 追加: クリアしていたら報酬を渡して次のミッションへ
+    if(SET.missionIdx<MISSIONS.length){const m=MISSIONS[SET.missionIdx];const pr=m.chk();if(pr&&pr[0]>=pr[1]&&!SET.missionPending){SET.missionPending=true;try{showComment('🏆 ミッション達成！BOOKで報酬を受け取ってね');}catch(e){}save();}} // 追加: 達成したら「受け取り待ち」にするだけ（勝手に報酬を渡さない）
   }catch(e){} // 追加: 進行チェックここまで
 } // 追加: ミッション進行ここまで
 function missionFmt(v){return Math.floor(v).toLocaleString();} // 追加: 進み具合の数字表示
@@ -4981,7 +4981,7 @@ function missionMenuInject(){ // 追加: ミッションパネルをメニュー
   let h=''; // 追加: 中身
   if(missionFlash)h+='<div style="border:1px solid #c9a24d;background:rgba(201,162,77,.16);color:#f3d27a;padding:9px 11px;border-radius:3px;font-size:13px;margin:8px 0">'+missionFlash+'</div>'; // 追加: クリアのお知らせ
   if(idx>=total){h+='<div style="margin-top:8px"><b>🏆 ミッションBOOK</b><br>🎉 全'+total+'ミッション制覇！おめでとう！君は真のレジェンドだ！</div>';} // 追加: 全制覇の表示
-  else if(!missionPanelOpen){h+='<button class="btn gold" data-mission-open="1">🏆 ミッションBOOK（クリア '+idx+'/'+total+'）― 今のミッションを見る</button>';} // 追加: 開くボタン
+  else if(!missionPanelOpen){h+='<button class="btn gold" data-mission-open="1">🏆 ミッションBOOK（クリア '+idx+'/'+total+'）'+(SET.missionPending?' ― 🎁 報酬を受け取れるよ！':' ― 今のミッションを見る')+'</button>';} // 追加: 開くボタン（受け取り待ちなら知らせる）
   else{const m=MISSIONS[idx];const pr=m.chk();const cur=Math.min(pr[0],pr[1]);const pct=Math.max(0,Math.min(100,Math.floor(cur/pr[1]*100))); // 追加: 今のミッションの情報
     h+='<div style="border:1px solid #c9a24d;background:rgba(201,162,77,.06);padding:12px;border-radius:3px;margin-top:8px">' // 追加: ミッションカード
       +'<div style="font:900 11px Orbitron,sans-serif;letter-spacing:.22em;color:#c9a24d">MISSION BOOK</div>' // 追加: 見出し
@@ -4991,6 +4991,7 @@ function missionMenuInject(){ // 追加: ミッションパネルをメニュー
       +'<div style="font-size:13px">進み具合 <b>'+missionFmt(cur)+' / '+missionFmt(pr[1])+'</b></div>' // 追加: 進み具合
       +'<div style="height:8px;background:rgba(255,255,255,.12);border-radius:2px;margin:5px 0"><div style="height:8px;width:'+pct+'%;background:#c9a24d;border-radius:2px"></div></div>' // 追加: 進み具合のバー
       +'<div style="font-size:13px">報酬：<b style="color:#c9a24d">'+missionRewardText(m.rw)+'</b></div>' // 追加: 報酬
+      +(SET.missionPending?'<button class="btn gold" data-mission-claim="1" style="margin-top:8px">🎁 報酬を受け取る</button>':'') // 追加: 達成していたら受け取りボタンを出す
       +'<button class="btn" data-mission-close="1" style="margin-top:8px">閉じる</button></div>';} // 追加: ミッションカードここまで
   if(mp._lastH!==h){mp.innerHTML=h;mp._lastH=h;} // 追加: 変わったときだけ描く（タップ対策）
 } // 追加: ミッションパネルここまで
@@ -4999,7 +5000,15 @@ menuExtraStep=function(){ // 追加: メニュー処理のついでにミッシ�
   _menuExtraMission(); // 追加: 元のメニュー追加処理
   try{missionMenuInject();}catch(e){} // 追加: ミッションパネル
 }; // 追加: メニューラッパーここまで
+function missionClaim(){ // 追加: 達成したミッションの報酬を受け取る（ボタンを押したときだけ渡す）
+  if(!SET.missionPending)return; // 追加: 受け取る報酬がなければ何もしない
+  const m=MISSIONS[SET.missionIdx]; // 追加: 今のミッション
+  if(!m){SET.missionPending=false;save();return;} // 追加: ミッションがなければ取り消す
+  const pr=m.chk();if(!pr||pr[0]<pr[1]){SET.missionPending=false;save();missionMenuInject();return;} // 追加: 条件が戻っていたら受け取れない
+  const got=missionGrant(m.rw);SET.missionIdx++;SET.missionPending=false;missionFlash='🎉 ミッション「'+m.t+'」クリア！ 報酬：'+got;try{showComment('🏆 ミッションクリア！ '+m.t);}catch(e){}save();missionMenuInject(); // 追加: 報酬を渡して次のミッションへ
+} // 追加: 報酬受け取りここまで
 document.addEventListener('click',function(e){ // 追加: ミッションボタンのクリック処理
+  const cl=e.target.closest?e.target.closest('[data-mission-claim]'):null;if(cl){missionClaim();return;} // 追加: 報酬を受け取る
   const o=e.target.closest?e.target.closest('[data-mission-open]'):null;if(o){missionPanelOpen=true;missionMenuInject();return;} // 追加: パネルを開く
   const c=e.target.closest?e.target.closest('[data-mission-close]'):null;if(c){missionPanelOpen=false;missionFlash='';missionMenuInject();return;} // 追加: パネルを閉じる
 }); // 追加: ミッションボタン処理ここまで
