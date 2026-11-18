@@ -1726,9 +1726,7 @@ function battleStep(dt){ // 追加: ライバルバトル進行
       battle=null;if(bh)bh.style.display='none';return; // 追加: ボス戦終了
     } // 追加: ボス勝利ここまで
     SET.money[0]+=50000; // 追加: 賞金5万円
-    let carMsg=''; // 追加: 車ゲットのメッセージ
-    if(Math.random()<0.5){const ci=Math.floor(Math.random()*CARS.length);if(!(SET.ownedCars[0]||[0]).includes(ci)){(SET.ownedCars[0]||[0]).push(ci);carMsg=' 🚗 相手の'+CARS[ci].n+'をゲット！';}} // 追加: 50%で相手の車をゲット
-    save();showComment('🏆 バトル勝利！ +¥50,000'+carMsg); // 追加: 実況で知らせる
+    save();showComment('🏆 バトル勝利！ +¥50,000'); // 追加: 実況で知らせる（勝手に車が手に入る問題の対策で、勝利時の車プレゼントは廃止した）
     battle=null;if(bh)bh.style.display='none'; // 追加: バトル終了
   }else if(foeProg>=battle.target){ // 追加: 相手が先にゴール
     foe.maxSpd=battle.foeMax; // 追加: 相手の速度を元に戻す
@@ -2174,7 +2172,7 @@ function menuExtraStep(){ // 追加: メニューに売却・修理パネルを�
       h+='<button class="btn" data-d1="1">🏁 D1ドリフトモード（AIとタンデム）</button>'; // 追加: D1ドリフトボタン
       h+='<button class="btn" data-company="1">🏭 自動車会社'+(SET.company?'（'+SET.company.name+'）':'')+'</button>'; // 追加: 会社ボタン
       h+='<button class="btn" data-photos>📷 写真掲示板</button>'; // 追加: 写真掲示板のボタン
-      h+='<div style="margin-top:8px"><b>🏁 レース</b>（今の車 OVR'+ovrOfTunedCar((CFG[0]&&CFG[0].car)||0)+'）<br><button class="btn" data-race-start="1">🏁 レースを始める</button><button class="btn" data-reg-race="40-50">OVR 40〜49</button><button class="btn" data-reg-race="50-60">OVR 50〜59</button><button class="btn" data-reg-race="60-80">OVR 60〜79</button><button class="btn" data-reg-race="80-100">OVR 80〜99</button></div>'; // 追加: レースコマンド（上の方の車を増やしたので4つの範囲）
+      h+='<div style="margin-top:8px"><b>🏁 レース</b>（今の車 OVR'+ovrOfTunedCar((CFG[0]&&CFG[0].car)||0).toFixed(1)+'）<br><button class="btn" data-race-start="1">🏁 レースを始める</button><button class="btn" data-reg-race="40-50">OVR 40〜49</button><button class="btn" data-reg-race="50-60">OVR 50〜59</button><button class="btn" data-reg-race="60-80">OVR 60〜79</button><button class="btn" data-reg-race="80-101">OVR 80〜100</button></div>'; // 追加: レースコマンド（上の方の車を増やしたので4つの範囲）
       if(SET.netMode){ // 追加: オンライン中だけマップ・モード切替を出す
         const curMode={free:'フリー走行',ta:'タイムアタック',race:'ガチレース',chase:'パトカー逃走',police:'パトカー追跡',split_race:'2人レース',gt500:'GT500'}[SET.mode]||SET.mode; // 追加: 今のモード名
         let oh='<div style="margin-top:8px"><b>🌐 オンライン切替</b>（今：'+ROUTES[SET.route].n.split('・')[0]+'・'+curMode+'）<br><span style="font-size:12px">マップ：</span>'; // 追加: 切替パネルの見出し
@@ -2847,12 +2845,12 @@ function syncTuneForCar(k){ // 追加: 車が変わったらチューニング�
   SET._tuneCarIdx[k]=ci; // 追加: 今の車を覚える
   save(); // 追加: 保存する
 } // 追加: チューニング切り替えここまで
-function rankLetter(score){ // 追加: 点数をF～Sのランクにする
+function rankLetter(score){ // 追加: 点数をG～Xのランクにする
   score=Math.max(0,Math.min(100,Math.round(score))); // 追加: 0～100にする
-  if(score>=90)return 'S';if(score>=80)return 'A';if(score>=70)return 'B';if(score>=60)return 'C';if(score>=50)return 'D';if(score>=40)return 'E';return 'F'; // 追加: ランクを決める
+  if(score>=97)return 'X';if(score>=93)return 'SS';if(score>=88)return 'S';if(score>=78)return 'A';if(score>=68)return 'B';if(score>=58)return 'C';if(score>=48)return 'D';if(score>=38)return 'E';if(score>=28)return 'F';return 'G'; // 追加: ランクを決める（X・SS・S・A・B・C・D・E・F・Gの10段階）
 } // 追加: ランク文字ここまで
 function rankColor(r){ // 追加: ランクの色を決める
-  return {S:'#c084fc',A:'#ef4444',B:'#eab308',C:'#22c55e',D:'#38bdf8',E:'#a855f7',F:'#9ca3af'}[r]||'#9ca3af'; // 追加: S紫（キラキラ）・A赤・B黄・C緑・D水色・E紫・Fグレー
+  return {X:'#ff2fb3',SS:'#ffd700',S:'#a855f7',A:'#ef4444',B:'#f97316',C:'#eab308',D:'#22c55e',E:'#38bdf8',F:'#3b82f6',G:'#9ca3af'}[r]||'#9ca3af'; // 追加: Xピンク・SS金・S紫・A赤・Bオレンジ・C黄・D緑・E水色・F青・Gグレー
 } // 追加: ランク色ここまで
 function rankHtml(k){ // 追加: 7項目のランク表示（ガレージ用）
   const c=CFG[k],cr=CARS[c.car]||CARS[0],f=perfOf(c),pt=(SET.parts&&SET.parts[k])||{}; // 追加: 今の車とパーツ
@@ -2873,9 +2871,10 @@ function rankHtml(k){ // 追加: 7項目のランク表示（ガレージ用）
   }; // 追加: 点数ここまで
   const rows=Object.keys(scores).map(name=>{ // 追加: 7項目を並べる
     const r=rankLetter(scores[name]); // 追加: ランクを決める
-    const spark=r==='S'?' ✨':''; // 追加: Sだけキラキラ
-    const glow=r==='S'?'text-shadow:0 0 8px #c084fc,0 0 16px #a855f7;':'';
-    return '<span style="display:inline-block;width:108px;">'+name+'</span><b style="color:'+rankColor(r)+';font-size:18px;'+glow+'">'+r+'</b>'+spark+'　'; // 追加: 項目とランク（色付き）
+    const spark=(r==='X'||r==='SS'||r==='S')?' ✨':''; // 追加: 高ランクだけキラキラ
+    const glow=r==='X'?'text-shadow:0 0 8px #ff2fb3,0 0 16px #ff8a00,0 0 24px #00e5ff;':r==='SS'?'text-shadow:0 0 8px #ffd700,0 0 16px #ffb300;':r==='S'?'text-shadow:0 0 8px #c084fc,0 0 16px #a855f7;':''; // 追加: 高ランクは光る（Xは虹色に）
+    const colStyle=r==='X'?'background:linear-gradient(90deg,#ff2fb3,#ff8a00,#ffe600,#00e5ff);-webkit-background-clip:text;background-clip:text;color:transparent;':'color:'+rankColor(r)+';'; // 追加: Xは虹色グラデーション文字
+    return '<span style="display:inline-block;width:108px;">'+name+'</span><b style="'+colStyle+'font-size:18px;'+glow+'">'+r+'</b>'+spark+'　'; // 追加: 項目とランク（色付き）
   }).join('<br>'); // 追加: 7項目ここまで
   return '<div class="card" style="border-left-color:#a855f7;margin-top:8px"><b>🏆 性能ランク</b><br>'+rows+'</div>'; // 追加: ランクのカード
 } // 追加: ランク表示ここまで
@@ -2889,7 +2888,7 @@ function paramHtml(k){ // 追加: 性能パラメータ表示
   const muF=(f.muF*(1+0.03*(pt.lsd2||0)+0.03*(pt.susp||0)+0.02*(pt.cage||0))).toFixed(2),muR=(f.muR*(1+0.03*(pt.lsd2||0)+0.03*(pt.susp||0)+0.02*(pt.cage||0))).toFixed(2); // 追加: LSD・サス・ケージでグリップアップ
   const brk=Math.round((SETTS[k].brakePower||100)+(pt.brake||0)*12); // 追加: ブレーキ制動力
   return '<div class="card" style="border-left-color:#9333ea"><b>📊 性能パラメータ</b><br>'
-   +'OVR <b>'+tunedOvr(k,c.car)+'</b>（ノーマル '+ovrOf(cr)+'）　<span style="color:#e63946">'+rarityStars(rarityOf(cr))+'</span><br>' // 追加: OVRとレア度（チューン込み・ノーマルも表示）
+   +'OVR <b>'+tunedOvr(k,c.car).toFixed(1)+'</b>（ノーマル '+ovrOf(cr).toFixed(1)+'）　<span style="color:#e63946">'+rarityStars(rarityOf(cr))+'</span><br>' // 追加: OVRとレア度（チューン込み・ノーマルも表示）
    +'馬力 '+ps+'PS　重量 '+wt+'kg　PWR '+pwr+'kg/PS<br>'
    +'最高速 約'+top+'km/h　0-100km/h 約'+acc+'秒<br>'
    +'グリップ 前'+muF+' / 後'+muR+'　ブレーキ '+brk+'%<br>'+rankHtml(k)
@@ -2981,7 +2980,7 @@ touch2.innerHTML='<div class="tb" data-k="ArrowLeft" style="left:14px;bottom:24p
 document.body.appendChild(touch2); // 追加: 画面に置く
 touch2.querySelectorAll('.tb[data-k]').forEach(b=>{const kk=b.dataset.k;const on=e=>{e.preventDefault();K[kk]=true;b.classList.add('on');};const off=e=>{e.preventDefault();K[kk]=false;b.classList.remove('on');};b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);}); // 追加: 2Pボタンの操作
 document.getElementById('shopBtn2').addEventListener('pointerdown',e=>{e.preventDefault();if(state!=='game')return;if(pModalState[1].open)closePlayerModal(1);else if(pModalState[1].nearStore)openPlayerModal(1,pModalState[1].nearStore);}); // 追加: 2Pのショップボタン
-function ovrOf(cr){const s2=(cr.ps/Math.max(1,cr.kg))*100;return Math.max(40,Math.min(99,Math.round(30+s2*0.65)));} // 追加: 車の強さOVR
+function ovrOf(cr){const s2=(cr.ps/Math.max(1,cr.kg))*100;return Math.max(30,Math.min(100,Math.round((30+s2*0.65)*10)/10));} // 追加: 車の強さOVR（小数第1位まで・30〜100.0）
 function tuneBonus(){ // 追加: チューニングで上がるOVR
   const cfg=CFG[0]||{}; // 追加: 自分の車の設定
   return Math.min(3,cfg.engine||0)*3+Math.min(3,cfg.turbo||0)*2+Math.min(3,cfg.weight||0)*1; // 追加: エンジン+3・ターボ+2・軽量化+1（1段階ごと）
@@ -2996,7 +2995,7 @@ function tunedOvr(k,ci){ // 追加: チューニングとパーツ込みのOVR
   let ov=ovrOf({ps:ps,kg:wt}); // 追加: パワーウェイト比からOVR
   ov+=Math.round(((f.muF+f.muR)/2-1)*10); // 追加: タイヤのグリップ分
   ov+=(pt.brake||0)+(pt.nos||0)+(pt.lsd2||0)+(pt.fly||0)+(pt.susp||0)+(pt.clutch||0)+(pt.cooler||0)+(pt.cage||0)+(pt.battery||0); // 追加: ブレーキ・NOS・LSD・フライホイール・サス・クラッチ・インタークーラー・ケージ・バッテリー分
-  return Math.max(40,Math.min(99,ov)); // 追加: 40〜99に収める
+  return Math.max(30,Math.min(100,Math.round(ov*10)/10)); // 追加: 30〜100.0に収める（小数第1位まで）
 } // 追加: チューン込みOVRここまで
 function ovrOfTunedCar(ci){ // 追加: チューニング込みのOVR（レギュレーション用）
   return tunedOvr(0,ci); // 追加: チューン込みOVRを使う
@@ -3017,7 +3016,7 @@ function collectionHtml(){ // 追加: コレクション図鑑の表示
   h+='<div class="card">集めた車 '+owned.size+' / '+CARS.length+' 台（'+Math.round(owned.size/CARS.length*100)+'%）</div>'; // 追加: コンプリート率
   h+='<div class="chips"><button class="chip '+(collectionFilter==='all'?'on':'')+'" data-colfilter="all">全部</button><button class="chip '+(collectionFilter==='owned'?'on':'')+'" data-colfilter="owned">持っている</button><button class="chip '+(collectionFilter==='missing'?'on':'')+'" data-colfilter="missing">持っていない</button><button class="chip '+(collectionFilter==='rare'?'on':'')+'" data-colfilter="rare">★4以上</button></div>'; // 追加: 絞り込みボタン
   list.forEach(o=>{const has=owned.has(o.i);const ov=ovrOf(o.c),ra=rarityOf(o.c); // 追加: 車ごとに表示
-    h+='<div class="card" style="'+(has?'':'opacity:.55')+'"><span style="color:#e63946">'+rarityStars(ra)+'</span> <b>'+o.c.n+'</b>　OVR <b>'+ov+'</b><br><span style="font-size:11px">'+o.c.ps+'PS / '+o.c.kg+'kg / '+drvName(o.c)+' / ¥'+(o.c.price||0).toLocaleString()+'</span><br>'+(has?'✅ 持っている':'🔒 未入手')+'</div>'; // 追加: 車の情報
+    h+='<div class="card" style="'+(has?'':'opacity:.55')+'"><span style="color:#e63946">'+rarityStars(ra)+'</span> <b>'+o.c.n+'</b>　OVR <b>'+ov.toFixed(1)+'</b><br><span style="font-size:11px">'+o.c.ps+'PS / '+o.c.kg+'kg / '+drvName(o.c)+' / ¥'+(o.c.price||0).toLocaleString()+'</span><br>'+(has?'✅ 持っている':'🔒 未入手')+'</div>'; // 追加: 車の情報
   }); // 追加: 車一覧ここまで
   return h; // 追加: 図鑑を返す
 } // 追加: コレクション図鑑ここまで
@@ -3673,17 +3672,18 @@ const shopEnterEl=document.createElement('div');shopEnterEl.id='shopEnterPanel';
 const walkBtnTouch=document.createElement('div');walkBtnTouch.className='tb';walkBtnTouch.textContent='🚶 降りる';walkBtnTouch.style.cssText='right:186px;bottom:126px;font-size:15px'; // 追加: 降りるボタン（P1用）
 walkBtnTouch.addEventListener('pointerdown',e=>{e.preventDefault();toggleOnFoot();}); // 追加: 降りる・乗るを切り替える
 document.getElementById('touch').appendChild(walkBtnTouch); // 追加: タッチ画面に置く
+function onFootPl(){return players[(SET.netMode&&!SET.host)?1:0];} // 追加: 徒歩の対象プレイヤー（オンラインのゲストは2P側が自分）
 function toggleOnFoot(){ // 追加: 車から降りる・乗るを切り替える
   if(state!=='game')return; // 追加: ゲーム中でなければ何もしない
   if(SET.np!==1&&!(typeof conn!=='undefined'&&conn&&conn.open)){SET.np=1;SET.netMode=false;save();} // 追加: 誰ともつながっていないのに2人状態が残っていたら1人に戻す（オンラインの後遺症で降りられなくなる対策）
-  if(SET.np!==1){showComment('2人プレイでは降りられないよ');return;} // 追加: 1人プレイだけ
+  if(SET.np!==1&&!SET.netMode){showComment('2人プレイでは降りられないよ');return;} // 追加: 1人プレイとオンラインで降りられる（ローカル2人プレイだけ不可）
   if(onFoot){ // 追加: 乗る場合
-    const pl=players[0]; // 追加: 1Pの車
+    const pl=onFootPl(); // 追加: 自分の車
     const d=Math.hypot(walkChar.g.position.x-pl.S.x,walkChar.g.position.z-pl.S.z); // 追加: 車との距離
     if(d<4){exitOnFoot();showComment('🚗 車に乗ったよ！');} // 追加: 近ければ乗る
     else showComment('車の近くでEを押してね'); // 追加: 遠ければ乗れない
   }else{ // 追加: 降りる場合
-    const pl=players[0],S=pl.S; // 追加: 1Pの車
+    const pl=onFootPl(),S=pl.S; // 追加: 自分の車
     if(cd>0)return; // 追加: カウントダウン中は降りられない
     if(SET.mode!=='free'){showComment('フリー走行で降りられるよ');return;} // 追加: フリー走行だけ
     const spd2720=Math.hypot(S.u,S.v); // 追加: 今の速さ
@@ -3719,7 +3719,7 @@ function onFootStep(dt){ // 追加: 毎フレーム、徒歩を進める
   if(!onFoot)return; // 追加: 徒歩でなければ何もしない
   if(state!=='game'){exitOnFoot();return;} // 追加: ゲーム中でなければやめる
   if(cd>0){exitOnFoot();return;} // 追加: カウントダウンが始まったらやめる
-  const pl=players[0],S=pl.S; // 追加: 1Pの車
+  const pl=onFootPl(),S=pl.S; // 追加: 自分の車
   S.x=parkedPos.x;S.z=parkedPos.z;S.u=0;S.v=0;S.thr=0;S.brk=0;S.hand=0; // 追加: 車を停めたままにする
   const fwd=(K['KeyW']||K['ArrowUp']?1:0)-(K['KeyS']||K['ArrowDown']?1:0); // 追加: 前後の入力
   const turn=(K['KeyD']||K['ArrowRight']?1:0)-(K['KeyA']||K['ArrowLeft']?1:0); // 追加: 左右の入力
@@ -3741,7 +3741,7 @@ function onFootCam(dt){ // 追加: 毎フレーム、徒歩中のカメラを動
   if(!onFoot||state!=='game')return; // 追加: 徒歩でなければ何もしない
   const ch=walkChar.g.position; // 追加: 歩く人の位置
   const fx=Math.sin(walkHeading),fz=Math.cos(walkHeading); // 追加: 歩く向き
-  const cam=players[0].cam; // 追加: 1Pのカメラ
+  const cam=onFootPl().cam; // 追加: 自分のカメラ
   if(!walkCamPos){walkCamPos={x:cam.position.x,y:cam.position.y,z:cam.position.z};walkCamLook={x:ch.x,y:ch.y+1.2,z:ch.z};} // 追加: カメラのなめらかな位置を作る
   let tx,ty,tz,lx,ly,lz; // 追加: 視点の目標
   if(walkCamMode===1){ // 追加: 一人称視点
@@ -3821,8 +3821,8 @@ function upgradeNpcCars(){ // 追加: AI車をショップの実車にする
   try{ // 追加: 安全に変える
     const allIdx=[...Array(CARS.length).keys()]; // 追加: 車の番号を集める
     for(let i=allIdx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const tmp=allIdx[i];allIdx[i]=allIdx[j];allIdx[j]=tmp;} // 追加: 車をシャッフルする
-    const midIdx=allIdx.filter(i=>{const o=ovrOf(CARS[i]);return o>=40&&o<=60;}); // 追加: OVR40〜60の車（日常の交通の中心）
-    const restIdx=allIdx.filter(i=>{const o=ovrOf(CARS[i]);return o<40||o>60;}); // 追加: それ以外の車
+    const midIdx=allIdx.filter(i=>{const o=ovrOf(CARS[i]);return o>=35&&o<=60;}); // 追加: OVR35〜60の車（日常の交通の中心・OVRの小数化に合わせて下限を調整）
+    const restIdx=allIdx.filter(i=>{const o=ovrOf(CARS[i]);return o<35||o>60;}); // 追加: それ以外の車
     const idx=midIdx.concat(restIdx); // 追加: OVR40〜60を先に割り当てる（フリー走行の交通は手頃なグレードが中心になる）
     TR.forEach((t,i)=>{ // 追加: AI車ごとに実車を割り当てる
       const ci=idx[i%CARS.length];const cr=CARS[ci]; // 追加: このAI車の車種
@@ -4552,19 +4552,27 @@ function netAutoRejoin(){ // 追加: リロード後にオンラインの部屋�
   try{sessionStorage.removeItem('kt_net_rejoin');}catch(e){} // 追加: 印を消す
   netSetStatus('ステータス: 部屋 '+SET.roomCode+' に戻っています…'); // 追加: 状態を表示
   if(SET.host){ // 追加: ホストは部屋を作り直す
-    try{peer=new Peer('kt-room-'+SET.roomCode);}catch(e){return;} // 追加: 同じコードで部屋を作る
-    peer.on('open',id=>{netSetStatus('ステータス: ルーム作成完了！相手の参加を待っています…');}); // 追加: 部屋完成
-    peer.on('connection',c=>{ // 追加: 相手が来たら
-      conn=c; // 追加: 接続を覚える
-      conn.on('open',()=>{netSetStatus('ステータス: 2Pと接続成功！開始します…');setTimeout(()=>{startGame();},1200);}); // 追加: 接続成功
-      conn.on('data',d=>applyNetData(d)); // 追加: 相手のデータを受け取る
-    }); // 追加: 参加待ちここまで
+    let hTries=0; // 追加: 部屋を作り直した回数
+    const tryHost=()=>{ // 追加: 部屋を作る（失敗したら作り直す）
+      hTries++; // 追加: 回数を数える
+      if(hTries>6){netSetStatus('ステータス: 部屋に戻れませんでした');netLeaveRoom(false);showComment('🔌 部屋に戻れなかったから1人プレイに戻したよ');return;} // 追加: 6回だめなら1人プレイに戻す（落ちたままにしない）
+      let opened=false; // 追加: 部屋が開けたかどうか
+      try{if(peer){try{peer.destroy();}catch(e){}}peer=new Peer('kt-room-'+SET.roomCode);}catch(e){setTimeout(tryHost,2000);return;} // 追加: 同じコードで部屋を作る（前のPeerは壊してから）
+      peer.on('open',id=>{opened=true;netSetStatus('ステータス: ルーム作成完了！相手の参加を待っています…');}); // 追加: 部屋完成
+      peer.on('connection',c=>{ // 追加: 相手が来たら
+        conn=c; // 追加: 接続を覚える
+        conn.on('open',()=>{netSetStatus('ステータス: 2Pと接続成功！開始します…');setTimeout(()=>{startGame();},1200);}); // 追加: 接続成功
+        conn.on('data',d=>applyNetData(d)); // 追加: 相手のデータを受け取る
+      }); // 追加: 参加待ちここまで
+      peer.on('error',()=>{if(!opened)setTimeout(tryHost,2000);}); // 追加: 部屋が開ける前に失敗したら2秒後に作り直す（コードがまだ使われている場合など）
+    }; // 追加: 部屋作りここまで
+    tryHost(); // 追加: 部屋作りを始める
   }else{ // 追加: ゲストは部屋に入り直す
     let tries=0; // 追加: 試した回数
     const tryJoin=()=>{ // 追加: 部屋に入る
       tries++; // 追加: 回数を数える
-      if(tries>10){netSetStatus('ステータス: 部屋につながりませんでした。メニューから入り直してね');return;} // 追加: 10回でやめる
-      try{peer=new Peer();}catch(e){setTimeout(tryJoin,2000);return;} // 追加: 自分のPeerを作る
+      if(tries>10){netSetStatus('ステータス: 部屋につながりませんでした');netLeaveRoom(false);showComment('🔌 部屋に戻れなかったから1人プレイに戻したよ');return;} // 追加: 10回でやめて1人プレイに戻す（落ちたままにしない）
+      try{if(peer){try{peer.destroy();}catch(e){}}peer=new Peer();}catch(e){setTimeout(tryJoin,2000);return;} // 追加: 自分のPeerを作る（前のPeerは壊してから）
       peer.on('open',id=>{ // 追加: 自分の準備ができたら
         conn=peer.connect('kt-room-'+SET.roomCode); // 追加: ホストに接続する
         conn.on('open',()=>{netSetStatus('ステータス: ホストへ接続成功！開始します…');setTimeout(()=>{startGame();},1200);}); // 追加: 接続成功
@@ -5165,7 +5173,7 @@ applyNetData=function(data){ // 追加: 切断と同期の受信を足す
   if(data&&data.sync&&!SET.host){ // 追加: ゲストはホストの設定に合わせる
     const sr=data.sync.route,sm=data.sync.mode; // 追加: ホストのマップ・モード
     if(sr!==undefined&&sr!==SET.route){netSwitchApply(sr,sm||SET.mode);return;} // 追加: マップが違えばみんなで移動する
-    if(sm&&sm!==SET.mode){SET.mode=sm;save();if(state==='game')startGame();} // 追加: モードが違えば合わせる（ゲーム中なら始め直す）
+    if(sm&&sm!==SET.mode){SET.mode=sm;save();if(state==='game'){try{startGame();}catch(e){}}} // 追加: モードが違えば合わせる（ゲーム中なら始め直す・失敗しても落とさない）
     return; // 追加: 同期ここまで
   } // 追加: 同期受信ここまで
   _applyNet2720(data); // 追加: それ以外は元の受信処理
