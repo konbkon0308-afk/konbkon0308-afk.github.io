@@ -3659,6 +3659,7 @@ walkBtnTouch.addEventListener('pointerdown',e=>{e.preventDefault();toggleOnFoot(
 document.getElementById('touch').appendChild(walkBtnTouch); // 追加: タッチ画面に置く
 function toggleOnFoot(){ // 追加: 車から降りる・乗るを切り替える
   if(state!=='game')return; // 追加: ゲーム中でなければ何もしない
+  if(SET.np!==1&&!(typeof conn!=='undefined'&&conn&&conn.open)){SET.np=1;SET.netMode=false;save();} // 追加: 誰ともつながっていないのに2人状態が残っていたら1人に戻す（オンラインの後遺症で降りられなくなる対策）
   if(SET.np!==1){showComment('2人プレイでは降りられないよ');return;} // 追加: 1人プレイだけ
   if(onFoot){ // 追加: 乗る場合
     const pl=players[0]; // 追加: 1Pの車
@@ -3669,6 +3670,8 @@ function toggleOnFoot(){ // 追加: 車から降りる・乗るを切り替え�
     const pl=players[0],S=pl.S; // 追加: 1Pの車
     if(cd>0)return; // 追加: カウントダウン中は降りられない
     if(SET.mode!=='free'){showComment('フリー走行で降りられるよ');return;} // 追加: フリー走行だけ
+    const spd2720=Math.hypot(S.u,S.v); // 追加: 今の速さ
+    if(spd2720>2&&spd2720<6&&S.thr<0.05){S.u=0;S.v=0;} // 追加: ゆっくり流れているだけなら止めて降りられるようにする（ぶつけられたり坂で流れた場合）
     if(Math.hypot(S.u,S.v)>2){showComment('車を止めてから降りてね');return;} // 追加: 止まってから降りる
     onFoot=true; // 追加: 徒歩にする
     parkedPos={x:S.x,z:S.z,h:S.h}; // 追加: 車の場所を覚える
@@ -5115,6 +5118,76 @@ renderGame=function(){ // 追加: オンラインでは自分の車のカメラ�
     c.aspect=innerWidth/H;c.updateProjectionMatrix();renderer.render(scene,c); // 追加: 自分の視点で描く
   }else _renderGame2719(); // 追加: それ以外は元の描画
 }; // 追加: オンライン描画ここまで
+let netWasOpen2720=false,netSyncT2720=0; // 追加: オンラインの接続状態と同期タイマー
+function netLeaveRoom(notify){ // 追加: ルームを出る（切断ボタン用）
+  if(notify&&typeof conn!=='undefined'&&conn&&conn.open){try{conn.send({leave:true});}catch(e){}} // 追加: 相手に「出るよ」と伝える
+  SET.netMode=false;SET.np=1;SET.roomCode=null;SET.host=true;save(); // 追加: 1人プレイの状態に戻す（先にネット状態を切ってから接続を閉じる）
+  try{if(conn)conn.close();}catch(e){} // 追加: 接続を閉じる
+  try{if(peer)peer.destroy();}catch(e){} // 追加: 通信を終わらせる
+  conn=null;peer=null;netWasOpen2720=false; // 追加: 接続を空にする
+  const nm=document.getElementById('netModal');if(nm)nm.style.display='none'; // 追加: ネット画面を閉じる
+  if(state==='game')go('main'); // 追加: ゲーム中ならメニューに戻る
+} // 追加: ルームを出るここまで
+function netSyncSend2720(){ // 追加: ホストのマップ・モードを相手に送る
+  if(!SET.netMode||!SET.host)return; // 追加: ホストだけが送る
+  if(typeof conn==='undefined'||!conn||!conn.open)return; // 追加: つながっていなければ送らない
+  try{conn.send({sync:{route:SET.route,mode:SET.mode}});}catch(e){} // 追加: 今のマップ・モードを送る
+} // 追加: 同期送信ここまで
+const _applyNet2720=applyNetData; // 追加: 元の受信処理を覚える
+applyNetData=function(data){ // 追加: 切断と同期の受信を足す
+  if(data&&data.leave){netLeaveRoom(false);showComment('🔌 相手がルームを出たよ');return;} // 追加: 相手が出たら自分も1人に戻る
+  if(data&&data.sync&&!SET.host){ // 追加: ゲストはホストの設定に合わせる
+    const sr=data.sync.route,sm=data.sync.mode; // 追加: ホストのマップ・モード
+    if(sr!==undefined&&sr!==SET.route){netSwitchApply(sr,sm||SET.mode);return;} // 追加: マップが違えばみんなで移動する
+    if(sm&&sm!==SET.mode){SET.mode=sm;save();if(state==='game')startGame();} // 追加: モードが違えば合わせる（ゲーム中なら始め直す）
+    return; // 追加: 同期ここまで
+  } // 追加: 同期受信ここまで
+  _applyNet2720(data); // 追加: それ以外は元の受信処理
+}; // 追加: 受信の追加ここまで
+const _startGame2720=startGame; // 追加: 元のゲーム開始を覚える
+startGame=function(){netSyncSend2720();_startGame2720();}; // 追加: 開始時にホストの設定を相手へ送る
+const _draw2720=draw; // 追加: 元のメニュー描画を覚える
+draw=function(){ // 追加: オンラインのメニューは自分のパネルだけ出す（ホストが操作できるように）
+  _draw2720(); // 追加: まず元の描画
+  if(SET.netMode&&SET.np===2){ // 追加: オンラインのときだけ
+    const mine=SET.host?0:1; // 追加: 自分のパネル番号
+    const pMine=document.getElementById('panelP'+mine),pOther=document.getElementById('panelP'+(1-mine)); // 追加: 自分と相手のパネル
+    if(pOther)pOther.style.display='none'; // 追加: 相手のパネルは隠す（相手は自分の画面で操作する）
+    if(pMine){pMine.style.display='block';pMine.style.width='100%';pMine.style.maxWidth='100%';} // 追加: 自分のパネルを広く出す
+  } // 追加: パネル出し分けここまで
+}; // 追加: メニュー描画の追加ここまで
+const netLeaveBtnGame=document.createElement('button');netLeaveBtnGame.setAttribute('data-netleave','1');netLeaveBtnGame.textContent='🔌 切断';netLeaveBtnGame.style.cssText='position:fixed;left:10px;top:120px;z-index:60;display:none;background:#b91c1c;color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:14px;font-weight:700;cursor:pointer;';document.body.appendChild(netLeaveBtnGame); // 追加: ゲーム中の切断ボタン
+const netMenuPanel2720=document.createElement('div');netMenuPanel2720.id='netMenuPanel2720'; // 追加: オンライン用メニューパネル
+function netUiStep2720(){ // 追加: オンラインのボタンや同期を毎回見る
+  netLeaveBtnGame.style.display=(SET.netMode&&state==='game')?'block':'none'; // 追加: ゲーム中だけ切断ボタンを出す
+  if(SET.netMode&&typeof conn!=='undefined'&&conn&&conn.open)netWasOpen2720=true; // 追加: つながったことを覚える
+  if(SET.netMode&&netWasOpen2720&&!(typeof conn!=='undefined'&&conn&&conn.open)){netLeaveRoom(false);showComment('🔌 相手との接続が切れたよ');return;} // 追加: 相手が消えたら1人に戻る
+  netSyncT2720+=0.016; // 追加: 同期の間隔を数える
+  if(netSyncT2720>2){netSyncT2720=0;netSyncSend2720();} // 追加: 2秒ごとにホストの設定を送って食い違いを防ぐ
+  if(state==='menu'&&SET.netMode&&SET.np===2){ // 追加: オンラインメニューのとき
+    const mine=SET.host?0:1; // 追加: 自分のパネル番号
+    const hostPanel=document.getElementById('panelP'+mine); // 追加: 自分のパネル
+    if(hostPanel&&netMenuPanel2720.parentNode!==hostPanel)hostPanel.appendChild(netMenuPanel2720); // 追加: パネルを自分のメニューに付ける
+    let h='<div class="card" style="margin-top:8px"><b>🌐 オンライン対戦中</b>（部屋コード: '+(SET.roomCode||'----')+'）<br>今のマップ: '+ROUTES[SET.route].n.split('・')[0]+' ／ モード: '+SET.mode; // 追加: 状態表示
+    if(SET.host){ // 追加: ホストだけマップ・モードを変えられる
+      h+='<br><span style="font-size:12px">マップ（ホストが選ぶと全員ついてくる）：</span><br>'; // 追加: マップ見出し
+      ROUTES.forEach((r,i)=>{h+='<button class="btn" data-netroute="'+i+'" style="'+((netSwitchSel.route!=null?netSwitchSel.route:SET.route)===i?'outline:3px solid #f59e0b;':'')+'">'+r.n.split('・')[0]+'</button>';}); // 追加: マップのボタン
+      h+='<br><span style="font-size:12px">モード：</span><br>'; // 追加: モード見出し
+      [['free','フリー走行'],['race','🏁 ガチレース'],['ta','タイムアタック']].forEach(mm=>{h+='<button class="btn" data-netmode="'+mm[0]+'" style="'+((netSwitchSel.mode||SET.mode)===mm[0]?'outline:3px solid #f59e0b;':'')+'">'+mm[1]+'</button>';}); // 追加: モードのボタン
+      h+='<br><button class="btn" data-netswitch="1">🌐 みんなで切り替える</button>'; // 追加: 切り替えボタン
+    }else{ // 追加: ゲスト側の表示
+      h+='<br><span style="font-size:12px">マップ・モードはホストが決めるよ</span>'; // 追加: ゲストへの案内
+    } // 追加: ホスト・ゲスト表示ここまで
+    h+='<br><button class="btn" data-netleave="1" style="background:#b91c1c;color:#fff">🔌 ルームから出る（切断）</button></div>'; // 追加: 切断ボタン
+    if(netMenuPanel2720._lastH!==h){netMenuPanel2720.innerHTML=h;netMenuPanel2720._lastH=h;} // 追加: 変わったときだけ描く（タップを邪魔しない）
+  }else if(netMenuPanel2720.parentNode){netMenuPanel2720.remove();} // 追加: メニューでなければ外す
+} // 追加: オンラインUIここまで
+const _pedStep2720=pedStep; // 追加: 元の毎フレーム処理を覚える
+pedStep=function(dt){_pedStep2720(dt);try{netUiStep2720();}catch(e){}}; // 追加: オンラインUIも毎フレーム見る
+document.addEventListener('click',e=>{ // 追加: 切断ボタンの処理
+  const t=e.target;if(!t||!t.getAttribute)return; // 追加: ボタンか確認
+  if(t.getAttribute('data-netleave')){netLeaveRoom(true);showComment('🔌 ルームを出たよ');} // 追加: 切断する
+}); // 追加: 切断ボタンここまで
 const _sr101=showRaceResult; // 追加: リザルト表示を覚える（101用）
 showRaceResult=function(){ // 追加: リザルトのついでにGTグランプリの連続優勝を数える
   _sr101(); // 追加: これまでのリザルト処理
