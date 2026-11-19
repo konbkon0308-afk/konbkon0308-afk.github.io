@@ -6341,6 +6341,109 @@ startGame=function(){try{achvPanel2800.style.display='none';}catch(e){} try{prof
 // ======== 追加: v31.2 アプリ化（PWA）: Service Workerを登録してオフラインでも開けるようにする ========
 if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});} // 追加: アプリ化の登録（ファイルで開いたときは何もしない）
 // ======== 追加: v31.2 ここまで ========
+// ======== 追加: v32.0 ホーム画面（メニューを分かりやすく） ========
+try{achvPanel2800.style.zIndex='300';profilePanel2900.style.zIndex='301';}catch(e){} // 追加: 実績とプロフィールの画面をホーム画面より上に
+let homeOpen3200=true,homeView3200='title'; // 追加: ホーム画面の開閉と画面の種類
+const homeSel3200={freeRoute:(SET.route===7?7:0),freeMode:'free',raceRoute:([0,1,2,3,4,5,6,8].includes(SET.route)?SET.route:0),raceMode:'race'}; // 追加: ホーム画面での選択
+const homeMenu3200=document.createElement('div');homeMenu3200.id='homeMenu3200'; // 追加: ホーム画面を作る
+homeMenu3200.style.cssText='position:fixed;inset:0;background:linear-gradient(160deg,rgba(5,8,12,.97),rgba(10,16,24,.95));z-index:250;display:none;overflow:auto;padding:18px 14px 30px;'; // 追加: ホーム画面の見た目
+document.body.appendChild(homeMenu3200); // 追加: ホーム画面を置く
+function homePartyHTML3200(){ // 追加: パーティ表示（自分と相手の名前・称号）を作る
+  const li=levelOf2800(SET.xp);const myT=equippedTitleText2900(); // 追加: 自分の情報
+  let h='<div style="border:1px solid #2b3a4a;border-radius:12px;padding:10px 12px;margin:10px 0;background:rgba(255,255,255,.03)"><div style="font-size:13px;color:#9fb4c8;margin-bottom:8px">👥 パーティ</div><div style="display:flex;gap:8px;flex-wrap:wrap">'; // 追加: パーティの枠
+  h+='<div style="flex:1;min-width:140px;border:1px solid #c9a227;border-radius:10px;padding:8px 10px"><span style="font-size:22px">'+esc2900(SET.profile.icon||'🏎')+'</span> <b>'+esc2900(SET.names[0]||'プレイヤー')+'</b>'+(myT?'<br><span style="color:#ffd700;font-size:12px">『'+esc2900(myT)+'』</span>':'')+'<br><span style="font-size:12px;color:#9fb4c8">Lv.'+li.lv+' '+levelTitle2800(li.lv)+'</span></div>'; // 追加: 自分のカード
+  if(SET.netMode&&typeof netRemoteProfile2721!=='undefined'&&netRemoteProfile2721){const rp=netRemoteProfile2721;h+='<div style="flex:1;min-width:140px;border:1px solid #38bdf8;border-radius:10px;padding:8px 10px"><span style="font-size:22px">'+esc2900(rp.icon||'🏎')+'</span> <b>'+esc2900(rp.name||'相手')+'</b>'+(rp.title?'<br><span style="color:#ffd700;font-size:12px">『'+esc2900(rp.title)+'』</span>':'')+'<br><span style="font-size:12px;color:#9fb4c8">Lv.'+(rp.lv||1)+(rp.crew?'　'+esc2900(rp.crewIcon||'🏁')+' '+esc2900(rp.crew):'')+'</span></div>';} // 追加: 相手のカード（名前と称号）
+  else if(SET.netMode){h+='<div style="flex:1;min-width:140px;border:1px dashed #3a4a5a;border-radius:10px;padding:8px 10px;color:#9fb4c8;font-size:13px">相手の情報を取得中…</div>';} // 追加: 接続中の表示
+  else{h+='<div style="flex:1;min-width:140px;border:1px dashed #3a4a5a;border-radius:10px;padding:8px 10px;color:#9fb4c8;font-size:13px">オンラインに参加すると、ここに相手の名前と称号が出るよ</div>';} // 追加: 未参加の表示
+  h+='</div>'; // 追加: カードここまで
+  if(SET.netMode){h+='<div style="margin-top:8px;font-size:13px">部屋コード: <b>'+(SET.roomCode||'----')+'</b>　<button class="btn" data-netleave="1">🔌 切断</button></div>';} // 追加: 部屋コードと切断
+  else{h+='<button class="btn" data-home-net="1" style="width:100%;margin-top:8px;border-color:#38bdf8;color:#38bdf8">🌐 オンラインで遊ぶ（部屋を作る・参加する）</button>';} // 追加: オンライン開始ボタン
+  return h+'</div>'; // 追加: パーティ表示ここまで
+} // 追加: パーティ表示の関数ここまで
+function renderHome3200(){ // 追加: ホーム画面を描く
+  const li=levelOf2800(SET.xp);let h='<div style="max-width:560px;margin:0 auto;color:#e8eef4">'; // 追加: 土台
+  if(homeView3200==='title'){ // 追加: タイトル画面
+    h+='<div style="text-align:center;margin:14px 0 4px"><div style="font-family:Orbitron,sans-serif;font-size:34px;font-weight:900;color:#ffd700;letter-spacing:1px">R sters pec 01</div><div style="font-size:12px;color:#9fb4c8">峠ドリフト & オープンワールド都市</div></div>'; // 追加: ロゴ
+    h+='<div style="text-align:center;font-size:13px;color:#c8d4e0">'+esc2900(SET.profile.icon||'🏎')+' <b>'+esc2900(SET.names[0]||'プレイヤー')+'</b>'+(equippedTitleText2900()?' <span style="color:#ffd700">『'+esc2900(equippedTitleText2900())+'』</span>':'')+'　Lv.'+li.lv+'　💰 ¥'+(SET.money[0]||0).toLocaleString()+'　🚗 '+(SET.ownedCars[0]||[]).length+'台</div>'; // 追加: 自分の情報
+    h+=homePartyHTML3200(); // 追加: パーティ
+    h+='<button class="btn gold" data-home-view="play" style="width:100%;font-size:22px;padding:16px;margin:8px 0">▶ プレイ</button>'; // 追加: プレイボタン
+    h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0">'
+      +'<button class="btn gold" data-achv-open="1">🏆 実績</button><button class="btn" data-prof-open="1" style="border-color:#38bdf8;color:#38bdf8">👤 プロフィール</button><button class="btn" data-home-act="mission">🎯 ミッション</button>'
+      +'<button class="btn" data-home-act="collection">📚 車図鑑</button><button class="btn" data-home-act="gacha">🎰 ガチャ</button><button class="btn" data-home-act="gamble">🎲 カジノ</button>'
+      +'<button class="btn" data-home-act="job">💼 バイト</button><button class="btn" data-home-act="company">🏭 会社</button><button class="btn" data-home-act="photos">📷 写真掲示板</button>'
+      +'<button class="btn" data-home-act="settings">⚙️ 設定</button><button class="btn" data-home-act="custrace">🏁 カスタムレース</button><button class="btn" data-home-act="garage">🚗 ガレージ(店)</button>'
+      +'</div>'; // 追加: その他のショートカット
+    h+='<button class="btn" data-home-close="1" style="width:100%;margin-top:6px">✕ 閉じる</button><div style="text-align:center;font-size:11px;color:#7d8ea0;margin-top:4px">閉じると、いつものメニュー画面になるよ</div>'; // 追加: 閉じるボタン
+  }else if(homeView3200==='play'){ // 追加: プレイ選択
+    h+='<h2 style="color:#ffd700">▶ プレイ</h2>'
+      +'<button class="btn gold" data-home-view="free" style="width:100%;font-size:20px;padding:18px;margin:8px 0">🌆 フリーラン<div style="font-size:12px;font-weight:normal">街を自由に走る（逃走・追跡もここ）</div></button>'
+      +'<button class="btn gold" data-home-view="race" style="width:100%;font-size:20px;padding:18px;margin:8px 0">🏁 レースモード<div style="font-size:12px;font-weight:normal">サーキットでレース・タイムアタック・GT500</div></button>'
+      +'<button class="btn" data-home-back="1" style="width:100%;margin-top:10px">← もどる</button>'; // 追加: 2つの大きな入口
+  }else if(homeView3200==='free'){ // 追加: フリーラン選択（街だけ）
+    h+='<h2 style="color:#ffd700">🌆 フリーラン</h2><div style="font-size:13px;color:#9fb4c8;margin-bottom:6px">コース（街のマップ）</div><div style="display:grid;gap:8px">'
+      +[0,7].map(i=>'<button class="btn '+(homeSel3200.freeRoute===i?'gold':'')+'" data-home-freeroute="'+i+'" style="text-align:left;padding:12px">'+ROUTES[i].n+'</button>').join('')+'</div>'; // 追加: 街コース2つ
+    h+='<div style="font-size:13px;color:#9fb4c8;margin:12px 0 6px">モード</div><div style="display:flex;gap:8px;flex-wrap:wrap">'
+      +[['free','🚗 フリー走行'],['chase','🚨 逃走'],['police','🚓 追跡']].map(m2=>'<button class="btn '+(homeSel3200.freeMode===m2[0]?'gold':'')+'" data-home-freemode="'+m2[0]+'">'+m2[1]+'</button>').join('')+'</div>'; // 追加: フリー系モード
+    h+='<button class="btn gold" data-home-start="free" style="width:100%;font-size:20px;padding:15px;margin-top:16px">▶ スタート</button><button class="btn" data-home-back="1" style="width:100%;margin-top:8px">← もどる</button>'; // 追加: 開始と戻る
+  }else if(homeView3200==='race'){ // 追加: レース選択（サーキット）
+    h+='<h2 style="color:#ffd700">🏁 レースモード</h2><div style="font-size:13px;color:#9fb4c8;margin-bottom:6px">コース（サーキット）</div><div style="display:grid;gap:8px">'
+      +[0,1,2,3,4,5,6,8].map(i=>'<button class="btn '+(homeSel3200.raceRoute===i?'gold':'')+'" data-home-raceroute="'+i+'" style="text-align:left;padding:12px">'+ROUTES[i].n+'</button>').join('')+'</div>'; // 追加: サーキットコース
+    h+='<div style="font-size:13px;color:#9fb4c8;margin:12px 0 6px">モード</div><div style="display:flex;gap:8px;flex-wrap:wrap">'
+      +[['race','🏁 レース'],['ta','⏱ タイムアタック'],['gt500','🔥 GT500']].map(m2=>'<button class="btn '+(homeSel3200.raceMode===m2[0]?'gold':'')+'" data-home-racemode="'+m2[0]+'">'+m2[1]+'</button>').join('')+'</div>'
+      +(homeSel3200.raceMode==='gt500'?'<div style="font-size:12px;color:#9fb4c8;margin-top:4px">GT500はファンダムGT サーキット専用だよ</div>':''); // 追加: レース系モード
+    h+='<div style="font-size:13px;color:#9fb4c8;margin:12px 0 6px">AI難易度</div><div style="display:flex;gap:8px">'
+      +['初級','中級','上級'].map((t2,i)=>'<button class="btn '+(SET.aiDiff===i?'gold':'')+'" data-home-aidiff="'+i+'">'+t2+'</button>').join('')+'</div>'; // 追加: 難易度
+    h+='<button class="btn gold" data-home-start="race" style="width:100%;font-size:20px;padding:15px;margin-top:16px">▶ スタート</button><button class="btn" data-home-act="custrace" style="width:100%;margin-top:8px">🏁 カスタムレース（周回数・台数・出場車）</button><button class="btn" data-home-back="1" style="width:100%;margin-top:8px">← もどる</button>'; // 追加: 開始と戻る
+  } // 追加: 画面の種類ここまで
+  homeMenu3200.innerHTML=h+'</div>'; // 追加: 描き終わり
+} // 追加: ホーム画面を描く関数ここまで
+function homeStart3200(route,mode){ // 追加: ホーム画面からゲームを始める
+  if(SET.netMode){showComment('オンライン中はホストの切替パネルを使ってね');homeOpen3200=false;return;} // 追加: オンライン中は従来の切替に任せる
+  homeOpen3200=false;SET.mode=mode; // 追加: モードを決める
+  if(SET.route!==route){SET.route=route;save();armAutoStart(true);safeReload();} // 追加: コースが違えば読み直して自動開始
+  else{save();startGame();} // 追加: 同じコースならそのまま開始
+} // 追加: ホーム開始ここまで
+function homeAct3200(act){ // 追加: ショートカットの行き先
+  if(act==='mission'){homeOpen3200=false;const b=document.querySelector('[data-mission-open]');if(b)b.click();} // 追加: ミッションを開く
+  else if(act==='collection'){homeOpen3200=false;const b=document.querySelector('[data-collection]');if(b)b.click();} // 追加: 図鑑を開く
+  else if(act==='company'){homeOpen3200=false;const b=document.querySelector('[data-company]');if(b)b.click();} // 追加: 会社を開く
+  else if(act==='photos'){homeOpen3200=false;const b=document.querySelector('[data-photos]');if(b)b.click();} // 追加: 写真掲示板を開く
+  else if(act==='custrace'){homeOpen3200=false;const b=document.querySelector('[data-custopen]');if(b)b.click();} // 追加: カスタムレースを開く
+  else if(act==='gacha'){homeOpen3200=false;screen='gacha';draw();} // 追加: ガチャ画面へ
+  else if(act==='gamble'){homeOpen3200=false;screen='gamble';draw();} // 追加: カジノ画面へ
+  else if(act==='job'){homeOpen3200=false;screen='job';draw();} // 追加: バイト画面へ
+  else if(act==='settings'){homeOpen3200=false;screen='settings';draw();} // 追加: 設定画面へ
+  else if(act==='garage'){homeOpen3200=false;showComment('ガレージとショップは、走行中にコース沿いのお店に入るよ');} // 追加: 店の案内
+} // 追加: ショートカットここまで
+document.addEventListener('click',e=>{const t=e.target;if(!t||!t.closest)return; // 追加: ホーム画面のボタンを処理する
+  const v=t.closest('[data-home-view]');if(v){homeView3200=v.dataset.homeView;renderHome3200();return;} // 追加: 画面を切り替える
+  if(t.closest('[data-home-back]')){homeView3200=(homeView3200==='free'||homeView3200==='race')?'play':'title';renderHome3200();return;} // 追加: もどる
+  if(t.closest('[data-home-close]')){homeOpen3200=false;return;} // 追加: 閉じる（従来メニューへ）
+  if(t.closest('[data-home-open]')){homeOpen3200=true;homeView3200='title';renderHome3200();return;} // 追加: ホーム画面を開く
+  if(t.closest('[data-home-net]')){homeOpen3200=false;initNet();return;} // 追加: オンライン画面を開く
+  const fr=t.closest('[data-home-freeroute]');if(fr){homeSel3200.freeRoute=+fr.dataset.homeFreeroute;renderHome3200();return;} // 追加: フリーのコース選択
+  const fm=t.closest('[data-home-freemode]');if(fm){homeSel3200.freeMode=fm.dataset.homeFreemode;renderHome3200();return;} // 追加: フリーのモード選択
+  const rr=t.closest('[data-home-raceroute]');if(rr){homeSel3200.raceRoute=+rr.dataset.homeRaceroute;renderHome3200();return;} // 追加: レースのコース選択
+  const rm=t.closest('[data-home-racemode]');if(rm){homeSel3200.raceMode=rm.dataset.homeRacemode;if(homeSel3200.raceMode==='gt500')homeSel3200.raceRoute=6;renderHome3200();return;} // 追加: レースのモード選択（GT500は専用コース）
+  const ad=t.closest('[data-home-aidiff]');if(ad){try{setters.aiDiff(+ad.dataset.homeAidiff,0);}catch(err){SET.aiDiff=+ad.dataset.homeAidiff;save();}renderHome3200();return;} // 追加: AI難易度
+  const st=t.closest('[data-home-start]');if(st){if(st.dataset.homeStart==='free')homeStart3200(homeSel3200.freeRoute,homeSel3200.freeMode);else homeStart3200(homeSel3200.raceRoute,homeSel3200.raceMode);return;} // 追加: スタート
+  const ac=t.closest('[data-home-act]');if(ac){homeAct3200(ac.dataset.homeAct);return;} // 追加: ショートカット
+}); // 追加: ホーム画面のボタンここまで
+const _mes3200=menuExtraStep; // 追加: 今のメニュー追加処理を覚える
+menuExtraStep=function(){const r=_mes3200();try{ // 追加: 従来メニューにホームへ戻るボタンを足す
+  const p=document.getElementById('panelSingle'); // 追加: パネルを探す
+  if(p&&state==='menu'&&!homeOpen3200&&!document.getElementById('homeBack3200')){const b=document.createElement('div');b.id='homeBack3200';b.innerHTML='<button class="btn gold" data-home-open="1" style="width:100%;margin-bottom:8px">🏠 ホーム画面にもどる</button>';p.insertBefore(b,p.firstChild);} // 追加: ボタンを置く
+  if(p&&(homeOpen3200||state!=='menu')){const b=document.getElementById('homeBack3200');if(b)b.remove();} // 追加: いらないときは消す
+}catch(e){} return r;}; // 追加: メニュー追加処理ここまで
+setInterval(()=>{ // 追加: ホーム画面の表示を管理する
+  let pend=false;try{const a=JSON.parse(sessionStorage.getItem('kt_autostart')||'null');if(a&&a.go&&Date.now()-a.t<60000)pend=true;}catch(e){} // 追加: 自動開始の直前は出さない
+  const show=(state==='menu'&&homeOpen3200&&!pend); // 追加: 出すかどうか
+  const want=show?'block':'none'; // 追加: 目標の表示
+  if(homeMenu3200.style.display!==want){homeMenu3200.style.display=want;if(show)renderHome3200();} // 追加: 切り替わったときだけ描く
+  else if(show&&homeView3200==='title'){const st=homeMenu3200.scrollTop;renderHome3200();homeMenu3200.scrollTop=st;} // 追加: タイトルはパーティや所持金を最新にする
+},1200); // 追加: 表示管理ここまで
+renderHome3200(); // 追加: 最初の描画
+// ======== 追加: v32.0 ここまで ========
 applyQual();go('main');layout();requestAnimationFrame(loop);
 setTimeout(netAutoRejoin,1200); // 追加: オンライン切替でのリロードなら部屋へ自動で戻る
 })();

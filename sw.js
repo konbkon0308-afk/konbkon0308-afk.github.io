@@ -1,6 +1,6 @@
 // R sters pec 01 - Service Worker (v31.2)
 // ゲーム本体をキャッシュして、アプリとしてオフラインでも開けるようにする
-const CACHE_NAME = 'rsp-v312';
+const CACHE_NAME = 'rsp-v320';
 const CORE = [
   './',
   './index.html',
