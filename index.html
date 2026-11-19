@@ -6920,6 +6920,16 @@ if(SET.route===9){ // 追加: 土地だけのマップにする
   STORES.forEach(st=>{st.pos={x:99999,z:99999,y:0,lx:0,lz:0,h:0,tx:0,tz:0,lim:10};}); // 追加: このマップではお店の案内も出さない
 } // 追加: 残留物消しここまで
 // ======== 追加: v38.0 ここまで ========
+// ======== 追加: v39.0 土地の当たり判定と地形を完全に平らにする ========
+if(SET.route===9){ // 追加: このマップだけ
+  for(let i=0;i<P.length;i++){P[i].y=0.16;P[i].sl=0;} // 追加: 見えない坂を消す（車が浮く・傾く・押される原因）
+} // 追加: 平ら化ここまで
+const _wallHit3900=wallHit; // 追加: 元の壁判定を覚える
+wallHit=function(pl){ // 追加: 土地では見えない壁なし・グリップ全開・高さは地面に合わせる
+  if(SET.route===9){const p=trackInfo(pl);pl.gm=1;pl.S.y=groundYAt(pl.S.x,pl.S.z);return p;} // 追加: 土地専用の判定
+  return _wallHit3900(pl); // 追加: 他のマップは今まで通り
+}; // 追加: 壁判定の差し替えここまで
+// ======== 追加: v39.0 ここまで ========
 applyQual();go('main');layout();requestAnimationFrame(loop);
 setTimeout(netAutoRejoin,1200); // 追加: オンライン切替でのリロードなら部屋へ自動で戻る
 })();
