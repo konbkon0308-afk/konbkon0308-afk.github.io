@@ -7210,6 +7210,52 @@ MISSIONS.push({t:'チャレンジ三昧',d:'パークの挑戦を合計10回完�
 MISSIONS.push({t:'全種目制覇',d:'パークの挑戦を全10種目完走しよう。的当て・ストラックアウト・駐車・ボウリング・バッティング・ドリフト・ヒルクライム・最高速・風船割り・アスレチックだ。',chk:()=>[chalKinds4300(),10],rw:{money:800000}}); // 追加: ミッション121
 MISSIONS.push({t:'Xランクの実力',d:'パークの挑戦でスコア97点以上（Xランク）を取ろう。パークの頂点を目指せ！',chk:()=>[chalMax4300(),97],rw:{money:1500000,logo:'🎪'}}); // 追加: ミッション122
 // ======== 追加: v43.0 ここまで ========
+// ======== 追加: v44.0 ミッションを難易度順に並べ直す ========
+function missionDiff4400(m){ // 追加: ミッションの難易度を数値化する
+  let tgt=1;try{const r=m.chk();tgt=r[1]||1;}catch(e){} // 追加: 目標値
+  if(/money/.test(m.chk.toString())&&/\/1000000/.test(m.chk.toString()))tgt*=1000000; // 追加: 100万円単位の目標は円に直す
+  const s=m.chk.toString();let scale=1,mult=1,floor=0; // 追加: 物差し
+  if(/gtStreak/.test(s)){scale=4;mult=1.25;} // 追加: 連続優勝は特に難しい
+  else if(/totalProfit/.test(s)){scale=5000000;floor=0.37;} // 追加: 会社の利益
+  else if(/totalSold/.test(s)){scale=300;floor=0.36;} // 追加: 会社の売上（設立が前提）
+  else if(/company\?1:0/.test(s)){scale=1;mult=0.35;} // 追加: 会社設立
+  else if(/mOwn\((\d+)\)/.test(s)){const ci=parseInt(s.match(/mOwn\((\d+)\)/)[1]);const pr=(CARS[ci]&&CARS[ci].price)||0;return 0.25+pr/350000000;} // 追加: 特定の車は価格で難しさが決まる
+  else if(/mOwnSet\(HYPER/.test(s)){scale=1;mult=1.1;} // 追加: ハイパーカー入手
+  else if(/mOwnSet/.test(s))scale=10; // 追加: セット収集
+  else if(/mOwnCount/.test(s))scale=215; // 追加: 所持台数
+  else if(/winR\d/.test(s))scale=3; // 追加: コース優勝
+  else if(/podR\d/.test(s))scale=6; // 追加: コース表彰台
+  else if(/raceWin/.test(s))scale=100; // 追加: 優勝回数
+  else if(/racePod/.test(s))scale=150; // 追加: 表彰台回数
+  else if(/raceFin/.test(s))scale=50; // 追加: 完走回数
+  else if(/taFin/.test(s))scale=20; // 追加: TA完走
+  else if(/gtWin/.test(s))scale=20; // 追加: GT500優勝
+  else if(/driftBest/.test(s))scale=30000; // 追加: ドリフト
+  else if(/topSpeed/.test(s))scale=420; // 追加: 最高速
+  else if(/MS\.drive/.test(s))scale=3000; // 追加: 走行距離km
+  else if(/MS\.walk/.test(s))scale=5000; // 追加: 歩行距離
+  else if(/escape/.test(s)&&/arrest/.test(s))scale=20; // 追加: 逃走＋逮捕
+  else if(/escape/.test(s))scale=10; // 追加: 逃走
+  else if(/arrest/.test(s))scale=10; // 追加: 逮捕
+  else if(/d1win/.test(s))scale=10; // 追加: D1
+  else if(/gacha/.test(s))scale=100; // 追加: ガチャ
+  else if(/casino/.test(s))scale=20; // 追加: カジノ
+  else if(/spotPhotos/.test(s))scale=5; // 追加: フォトスポット
+  else if(/photos/.test(s))scale=20; // 追加: 写真
+  else if(/talks/.test(s))scale=10; // 追加: 会話
+  else if(/buys/.test(s))scale=30; // 追加: 購入
+  else if(/tunes|mPartsTotal/.test(s))scale=60; // 追加: チューニング
+  else if(/online/.test(s))scale=10; // 追加: オンライン
+  else if(/decals/.test(s))scale=8; // 追加: デカール
+  else if(/chalKinds/.test(s))scale=10; // 追加: パーク種目
+  else if(/chalMax/.test(s))scale=100; // 追加: パークのスコア
+  else if(/chalPlays/.test(s))scale=20; // 追加: パーク回数
+  else if(/athBest/.test(s))scale=5; // 追加: アスレチック
+  else if(/money/.test(s))scale=100000000; // 追加: 所持金
+  return Math.max(floor,(tgt/scale)*mult); // 追加: 難易度
+} // 追加: 難易度計算ここまで
+MISSIONS.sort((a,b)=>missionDiff4400(a)-missionDiff4400(b)); // 追加: 難易度順に並べ直す（同点は元の順番を維持）
+// ======== 追加: v44.0 ここまで ========
 applyQual();go('main');layout();requestAnimationFrame(loop);
 setTimeout(netAutoRejoin,1200); // 追加: オンライン切替でのリロードなら部屋へ自動で戻る
 })();
