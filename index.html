@@ -5,6 +5,13 @@
 <title>R sters pec 01</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=M+PLUS+1p:wght@800&display=swap" rel="stylesheet"> <!-- 追加: かっこいいフォント（Orbitron＋M PLUS 1p） -->
+<link rel="manifest" href="manifest.webmanifest"> <!-- 追加: アプリ化（PWA）の設定ファイル -->
+<meta name="theme-color" content="#0b0f14"> <!-- 追加: アプリのテーマ色 -->
+<meta name="mobile-web-app-capable" content="yes"> <!-- 追加: Androidでアプリとして開く -->
+<meta name="apple-mobile-web-app-capable" content="yes"> <!-- 追加: iPhoneでアプリとして開く -->
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> <!-- 追加: iPhoneのバーの見た目 -->
+<meta name="apple-mobile-web-app-title" content="R sters"> <!-- 追加: ホーム画面での名前 -->
+<link rel="apple-touch-icon" href="icons/icon-180.png"> <!-- 追加: iPhoneのホーム画面アイコン -->
 <style>
 :root{--ink:#1d2230;--red:#e63946;--paper:#f7f0e2;--gold:#f59e0b;--blue:#2563eb;--purple:#9333ea;--carbon:#111827;--emerald:#10b981;--cyan:#0891b2}
 html,body{margin:0;height:100%;overflow:hidden;background:#111827;font-family:"Orbitron","M PLUS 1p","Hiragino Sans","Yu Gothic",Meiryo,sans-serif;user-select:none}
@@ -6331,6 +6338,9 @@ document.addEventListener('click',e=>{const t=e.target;if(!t||!t.closest)return;
 const _sg3110=startGame; // 追加: 今のゲーム開始を覚える
 startGame=function(){try{achvPanel2800.style.display='none';}catch(e){} try{profilePanel2900.style.display='none';}catch(e){} return _sg3110.apply(this,arguments);}; // 追加: ゲーム開始時は両方の画面を閉じる（走行中に画面が出っぱなしにならない）
 // ======== 追加: v31.1 ここまで ========
+// ======== 追加: v31.2 アプリ化（PWA）: Service Workerを登録してオフラインでも開けるようにする ========
+if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});} // 追加: アプリ化の登録（ファイルで開いたときは何もしない）
+// ======== 追加: v31.2 ここまで ========
 applyQual();go('main');layout();requestAnimationFrame(loop);
 setTimeout(netAutoRejoin,1200); // 追加: オンライン切替でのリロードなら部屋へ自動で戻る
 })();
