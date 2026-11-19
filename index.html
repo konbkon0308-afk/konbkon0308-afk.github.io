@@ -7189,6 +7189,27 @@ const _pedStep4200=pedStep;pedStep=function(dt){const r=_pedStep4200.apply(this,
 const _onFootStep4200=onFootStep;onFootStep=function(dt){const r=_onFootStep4200.apply(this,arguments);try{if(onFoot&&walkChar&&CHAL4200.jump.init)walkChar.g.position.y=CHAL4200.jump.y;}catch(e){}return r;}; // 追加: ジャンプの高さを歩行処理の後に反映する
 const _renderRecords4200=renderRecords3500;renderRecords3500=function(){_renderRecords4200();try{const p=document.getElementById('recordsPanel3500');if(p&&SET.gameRecords.chalBest){let ex=document.getElementById('chalRecords4200');if(!ex){ex=document.createElement('div');ex.id='chalRecords4200';p.appendChild(ex);}const order=['rings','panels','parking','bowling','batting','drift','hill','speed','pops','athletic'];const rows=order.map(g=>{const sc=SET.gameRecords.chalBest[g];if(!sc)return '';const rk=rankLetter(sc);return '<div style="display:flex;justify-content:space-between;border-bottom:1px solid #22303f;padding:7px 2px"><span>'+CHAL_NAMES4200[g]+'</span><span><b style="color:'+rankColor(rk)+'">'+rk+'</b>　'+sc+' 点</span></div>';}).join('');const ath=SET.gameRecords.athBest;ex.innerHTML='<div style="margin-top:14px;font-size:14px"><div style="color:#ffd700;font-weight:700;margin-bottom:4px">チャレンジ自己ベスト</div>'+(rows||'<div style="color:#8fa6bb">まだ記録なし。遊具の近くで「挑戦する」を押してね</div>')+(ath?'<div style="margin-top:6px;color:#8fa6bb;font-size:12px">アスレチック完走 '+ath+' 回</div>':'')+'</div>';}}catch(e){}}; // 追加: 記録にチャレンジのランクを足す
 // ======== 追加: v42.0 ここまで ========
+// ======== 追加: v43.0 パークの挑戦を実績とミッションに組み込む ========
+if(SET.gameRecords&&SET.gameRecords.chalPlays===undefined)SET.gameRecords.chalPlays=0; // 追加: 挑戦回数の記録
+function chalKinds4300(){const b=(SET.gameRecords&&SET.gameRecords.chalBest)||{};return Object.keys(b).filter(k=>b[k]>0).length;} // 追加: 完走した種目の数
+function chalMax4300(){const b=(SET.gameRecords&&SET.gameRecords.chalBest)||{};let m=0;Object.keys(b).forEach(k=>{if(b[k]>m)m=b[k];});return m;} // 追加: 最高スコア
+const _chalEnd4300=chalEnd4200;chalEnd4200=function(score,detail){const g=CHAL4200.cur;const r=_chalEnd4300.apply(this,arguments);if(g){SET.gameRecords.chalPlays=(SET.gameRecords.chalPlays||0)+1;try{recSave3500();}catch(e){}}return r;}; // 追加: 挑戦回数を数える
+ACHV2800.push( // 追加: パークの実績
+{id:'chal1',t:'チャレンジデビュー',d:'パークの挑戦を1種目完走する',chk:()=>chalKinds4300()>=1,prog:()=>[Math.min(1,chalKinds4300()),1],rw:{money:50000},rwTxt:'¥50,000'}, // 追加: 実績
+{id:'chal5',t:'チャレンジ5種目',d:'パークの挑戦を5種目完走する',chk:()=>chalKinds4300()>=5,prog:()=>[Math.min(5,chalKinds4300()),5],rw:{money:200000},rwTxt:'¥200,000'}, // 追加: 実績
+{id:'chalall',t:'全種目チャレンジャー',d:'パークの挑戦を全10種目完走する',chk:()=>chalKinds4300()>=10,prog:()=>[Math.min(10,chalKinds4300()),10],rw:{money:500000},rwTxt:'¥500,000'}, // 追加: 実績
+{id:'rankS',t:'Sランクゲット',d:'パークの挑戦でSランク以上（88点以上）を取る',chk:()=>chalMax4300()>=88,prog:()=>[Math.min(88,chalMax4300()),88],rw:{money:200000},rwTxt:'¥200,000'}, // 追加: 実績
+{id:'rankX',t:'Xランクゲット',d:'パークの挑戦でXランク（97点以上）を取る',chk:()=>chalMax4300()>=97,prog:()=>[Math.min(97,chalMax4300()),97],rw:{money:500000},rwTxt:'¥500,000'}, // 追加: 実績
+{id:'ath1',t:'アスレチック完走',d:'徒歩アスレチックを完走する',chk:()=>(SET.gameRecords.athBest||0)>=1,prog:()=>[Math.min(1,SET.gameRecords.athBest||0),1],rw:{money:100000},rwTxt:'¥100,000'}, // 追加: 実績
+{id:'ath5',t:'アスレチック達人',d:'徒歩アスレチックを5回完走する',chk:()=>(SET.gameRecords.athBest||0)>=5,prog:()=>[Math.min(5,SET.gameRecords.athBest||0),5],rw:{money:300000},rwTxt:'¥300,000'}, // 追加: 実績
+{id:'chal20',t:'チャレンジ20回',d:'パークの挑戦を合計20回完走する',chk:()=>(SET.gameRecords.chalPlays||0)>=20,prog:()=>[Math.min(20,SET.gameRecords.chalPlays||0),20],rw:{money:300000},rwTxt:'¥300,000'}); // 追加: 実績ここまで
+MISSIONS.push({t:'パークチャレンジ入門',d:'ミュージアムパークRの挑戦（的当てや駐車など）をどれか1種目完走しよう。遊具に近づくと「挑戦する」ボタンが出るよ。',chk:()=>[chalKinds4300(),1],rw:{money:150000}}); // 追加: ミッション117
+MISSIONS.push({t:'アスレチック制覇',d:'歩いてアスレチックコースを完走しよう。ドリフトボタンでジャンプ、ゴールの旗を目指してね。',chk:()=>[SET.gameRecords.athBest||0,1],rw:{money:200000}}); // 追加: ミッション118
+MISSIONS.push({t:'目指せSランク',d:'パークの挑戦でスコア88点以上（Sランク）を取ろう。自己ベスト更新を狙って何度も挑戦だ。',chk:()=>[chalMax4300(),88],rw:{money:300000}}); // 追加: ミッション119
+MISSIONS.push({t:'チャレンジ三昧',d:'パークの挑戦を合計10回完走しよう。種目はなんでもOK。',chk:()=>[SET.gameRecords.chalPlays||0,10],rw:{money:300000}}); // 追加: ミッション120
+MISSIONS.push({t:'全種目制覇',d:'パークの挑戦を全10種目完走しよう。的当て・ストラックアウト・駐車・ボウリング・バッティング・ドリフト・ヒルクライム・最高速・風船割り・アスレチックだ。',chk:()=>[chalKinds4300(),10],rw:{money:800000}}); // 追加: ミッション121
+MISSIONS.push({t:'Xランクの実力',d:'パークの挑戦でスコア97点以上（Xランク）を取ろう。パークの頂点を目指せ！',chk:()=>[chalMax4300(),97],rw:{money:1500000,logo:'🎪'}}); // 追加: ミッション122
+// ======== 追加: v43.0 ここまで ========
 applyQual();go('main');layout();requestAnimationFrame(loop);
 setTimeout(netAutoRejoin,1200); // 追加: オンライン切替でのリロードなら部屋へ自動で戻る
 })();
