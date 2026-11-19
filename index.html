@@ -6724,12 +6724,12 @@ funStep3400=function(dt){ // 追加: 追加ミニゲームの判定（広場版�
     const lp=(SET.netMode&&!SET.host)?players[1]:players[0];if(!lp||!lp.S)return;const R=SET.gameRecords; // 追加: 自分の車と記録
     const spd=Math.hypot(lp.S.u,lp.S.v)*3.6;const parts=[]; // 追加: 速度と表示部品
     const spot=FUN3400.spots[FUN3400.parkTarget]; // 追加: 駐車チャレンジ
-    if(spot){const fx=Math.sin(spot.h),fz=Math.cos(spot.h),rx=Math.cos(spot.h),rz=-Math.sin(spot.h);const dx=lp.S.x-spot.x,dz=lp.S.z-spot.z;const lx=dx*rx+dz*rz,lzz=dx*fx+dz*fz;const dh=Math.min(Math.abs(angDiff3400(lp.S.h,spot.h)),Math.abs(angDiff3400(lp.S.h,spot.h+Math.PI)));
+    if(spot&&CHAL4200.cur==='parking'){const fx=Math.sin(spot.h),fz=Math.cos(spot.h),rx=Math.cos(spot.h),rz=-Math.sin(spot.h);const dx=lp.S.x-spot.x,dz=lp.S.z-spot.z;const lx=dx*rx+dz*rz,lzz=dx*fx+dz*fz;const dh=Math.min(Math.abs(angDiff3400(lp.S.h,spot.h)),Math.abs(angDiff3400(lp.S.h,spot.h+Math.PI)));
       if(Math.abs(lx)<1.6&&Math.abs(lzz)<2.9&&dh<0.45&&spd<1.2){FUN3400.parkHold+=dt;parts.push('駐車中…そのまま止まって！');if(FUN3400.parkHold>1.2){SET.money[0]+=30000;R.parkClears++;const t=(performance.now()-FUN3500.parkStartT)/1000;if(!R.parkBestTime||t<R.parkBestTime)R.parkBestTime=Math.round(t*10)/10;recSave3500();showComment('駐車成功！ ¥30,000');setBubble3300('駐車バッチリ！');spot.mesh.material=new THREE.MeshLambertMaterial({map:spotTexture3400(false)});let nt=FUN3400.parkTarget;while(nt===FUN3400.parkTarget)nt=Math.floor(Math.random()*8);FUN3400.parkTarget=nt;FUN3400.spots[nt].mesh.material=new THREE.MeshLambertMaterial({map:spotTexture3400(true)});FUN3400.parkHold=0;FUN3500.parkStartT=performance.now();}}else FUN3400.parkHold=Math.max(0,FUN3400.parkHold-dt*2);}
-    for(const pn of FUN3400.pins){if(pn.down&&pn.pivot.rotation.x<1.3)pn.pivot.rotation.x=Math.min(1.35,pn.pivot.rotation.x+dt*3.4);if(!pn.down&&Math.hypot(lp.S.x-pn.x,lp.S.z-pn.z)<2.4){pn.down=true;FUN3400.bowlN++;if(FUN3400.bowlState==='ready'){FUN3400.bowlState='active';FUN3400.bowlTimer=0;}setBubble3300('ピン '+FUN3400.bowlN+' 本！');}} // 追加: ボウリング
-    if(FUN3400.bowlState==='active'){parts.push('ボウリング '+FUN3400.bowlN+'/10');if(spd<2)FUN3400.bowlTimer+=dt;if(FUN3400.bowlTimer>3){const n=FUN3400.bowlN;const prize=n>=10?100000:(n>=7?40000:(n>=4?15000:n*2000));if(prize>0)SET.money[0]+=prize;R.bowlGames++;R.bowlPins+=n;if(n>R.bowlBest)R.bowlBest=n;if(n>=10)R.bowlStrikes++;recSave3500();showComment(n>=10?'ストライク！ ¥100,000':('ボウリング '+n+' 本！'+(prize>0?' ¥'+prize.toLocaleString():'')));setBubble3300(n>=10?'ストライク！すごい！':('ボウリング '+n+' 本'));FUN3400.bowlState='cool';setTimeout(()=>{FUN3400.pins.forEach(p2=>{p2.down=false;p2.pivot.rotation.x=0;});FUN3400.bowlN=0;FUN3400.bowlState='ready';},5000);}}
+    for(const pn of FUN3400.pins){if(pn.down&&pn.pivot.rotation.x<1.3)pn.pivot.rotation.x=Math.min(1.35,pn.pivot.rotation.x+dt*3.4);if(!pn.down&&CHAL4200.cur==='bowling'&&Math.hypot(lp.S.x-pn.x,lp.S.z-pn.z)<2.4){pn.down=true;FUN3400.bowlN++;if(FUN3400.bowlState==='ready'){FUN3400.bowlState='active';FUN3400.bowlTimer=0;}setBubble3300('ピン '+FUN3400.bowlN+' 本！');}} // 追加: ボウリング
+    if(FUN3400.bowlState==='active'&&CHAL4200.cur==='bowling'){parts.push('ボウリング '+FUN3400.bowlN+'/10');if(spd<2)FUN3400.bowlTimer+=dt;if(FUN3400.bowlTimer>3){const n=FUN3400.bowlN;const prize=n>=10?100000:(n>=7?40000:(n>=4?15000:n*2000));if(prize>0)SET.money[0]+=prize;R.bowlGames++;R.bowlPins+=n;if(n>R.bowlBest)R.bowlBest=n;if(n>=10)R.bowlStrikes++;recSave3500();showComment(n>=10?'ストライク！ ¥100,000':('ボウリング '+n+' 本！'+(prize>0?' ¥'+prize.toLocaleString():'')));setBubble3300(n>=10?'ストライク！すごい！':('ボウリング '+n+' 本'));FUN3400.bowlState='cool';setTimeout(()=>{FUN3400.pins.forEach(p2=>{p2.down=false;p2.pivot.rotation.x=0;});FUN3400.bowlN=0;FUN3400.bowlState='ready';},5000);}}
     const bat=FUN3400.bat; // 追加: バッティング
-    if(bat){const B=bat.ball;
+    if(bat&&CHAL4200.cur==='batting'){const B=bat.ball;
       if(bat.state==='ready'){bat.timer-=dt;if(bat.timer<=0){bat.state='pitch';B.visible=true;B.position.set(bat.pitchFrom.x,bat.gy+1.4,bat.pitchFrom.z);bat.vel={x:bat.dir.x*15,y:1.5,z:bat.dir.z*15};}}
       else if(bat.state==='pitch'){B.position.x+=bat.vel.x*dt;B.position.z+=bat.vel.z*dt;B.position.y+=bat.vel.y*dt;bat.vel.y-=9*dt;if(B.position.y<bat.gy+0.5)B.position.y=bat.gy+0.5;
         if(Math.hypot(B.position.x-lp.S.x,B.position.z-lp.S.z)<2.7){const pw=26+spd*0.3+(spd>55?12:0);bat.state='hit';bat.vel={x:bat.dir.x*pw*0.8,y:pw*0.55,z:bat.dir.z*pw*0.8};setBubble3300('打った！');}
@@ -6737,16 +6737,16 @@ funStep3400=function(dt){ // 追加: 追加ミニゲームの判定（広場版�
       else if(bat.state==='hit'){B.position.x+=bat.vel.x*dt;B.position.z+=bat.vel.z*dt;B.position.y+=bat.vel.y*dt;bat.vel.y-=12*dt;const gy2=groundYAt(B.position.x,B.position.z);if(B.position.y<=gy2+0.45){const dist=Math.floor(Math.hypot(B.position.x-bat.plate.x,B.position.z-bat.plate.z));const prize=dist>=100?80000:(dist>=70?40000:(dist>=45?15000:(dist>=25?5000:0)));if(prize>0)SET.money[0]+=prize;R.batHits++;if(dist>R.batBest)R.batBest=dist;if(dist>=100)R.batHR++;recSave3500();showComment((dist>=100?'ホームラン！ ':dist>=45?'ナイスバッティング！ ':'ゴロ… ')+dist+'m'+(prize>0?' ¥'+prize.toLocaleString():''));setBubble3300(dist>=100?'ホームラン！':(dist+'m 飛んだ！'));bat.state='dead';bat.timer=1.6;}}
       else if(bat.state==='dead'){bat.timer-=dt;if(bat.timer<=0){bat.state='ready';bat.timer=2.2;B.visible=false;}}}
     const dr=FUN3500.driftRect;const inz=dr&&Math.abs(lp.S.x-dr.x)<dr.w/2&&Math.abs(lp.S.z-dr.z)<dr.d/2;const chain=(typeof driftState!=='undefined'&&driftState[lp.k])?(driftState[lp.k].chain||0):0; // 追加: ドリフトエリア
-    if(inz){if(chain>FUN3400.drift.best)FUN3400.drift.best=chain;if(chain>0)parts.push('ドリフト '+Math.floor(Math.max(chain,FUN3400.drift.best))+' pt');}
-    if(!inz&&FUN3400.drift.in){const b=Math.floor(FUN3400.drift.best);const prize=b>=20000?120000:(b>=10000?50000:(b>=5000?20000:(b>=2000?5000:0)));if(b>0){if(prize>0)SET.money[0]+=prize;if(b>(SET.funDriftBest||0))SET.funDriftBest=b;R.driftPlays++;recSave3500();showComment('ドリフトチャレンジ: '+b.toLocaleString()+' pt'+(prize>0?' ¥'+prize.toLocaleString():''));setBubble3300('ドリフト '+b.toLocaleString()+' pt！');}FUN3400.drift.best=0;}
-    FUN3400.drift.in=inz;
+    if(inz&&CHAL4200.cur==='drift'){if(chain>FUN3400.drift.best)FUN3400.drift.best=chain;if(chain>0)parts.push('ドリフト '+Math.floor(Math.max(chain,FUN3400.drift.best))+' pt');}
+    if(!inz&&FUN3400.drift.in&&CHAL4200.cur==='drift'){const b=Math.floor(FUN3400.drift.best);const prize=b>=20000?120000:(b>=10000?50000:(b>=5000?20000:(b>=2000?5000:0)));if(b>0){if(prize>0)SET.money[0]+=prize;if(b>(SET.funDriftBest||0))SET.funDriftBest=b;R.driftPlays++;recSave3500();showComment('ドリフトチャレンジ: '+b.toLocaleString()+' pt'+(prize>0?' ¥'+prize.toLocaleString():''));setBubble3300('ドリフト '+b.toLocaleString()+' pt！');}FUN3400.drift.best=0;}
+    FUN3400.drift.in=(CHAL4200.cur==='drift')?inz:false;
     const H=FUN3400.hill; // 追加: ヒルクライム（道路の登り）
     if(H){const prog=(lp.ti-H.i0+N)%N;
       if(!H.active&&(prog<3||prog>N-3)&&spd<30){H.active=true;H.maxH=0;H.stopT=0;setBubble3300('ヒルクライム 開始！');}
       if(H.active){if(prog<200){const hh=H.U[H.i0+prog]-H.U[H.i0];if(hh>H.maxH)H.maxH=hh;parts.push('ヒルクライム 現在 '+Math.floor(H.maxH)+'m');}
         if(prog>=200||prog>N-10){H.active=false;}
         else if(spd<3&&prog>5){H.stopT+=dt;if(H.stopT>1.5){const mh2=Math.floor(H.maxH);const prize=mh2>=45?100000:(mh2>=35?60000:(mh2>=25?30000:(mh2>=15?15000:(mh2>=8?5000:0))));if(prize>0)SET.money[0]+=prize;if(mh2>(SET.funHillBest||0))SET.funHillBest=mh2;R.hillPlays++;recSave3500();showComment('ヒルクライム: '+mh2+'m 地点まで登った！'+(prize>0?' ¥'+prize.toLocaleString():''));setBubble3300(mh2+'m まで登った！');H.active=false;}}else H.stopT=0;}}
-    for(const pp of FUN3400.pops){if(pp.hit)continue;if(Math.hypot(lp.S.x-pp.x,lp.S.z-pp.z)<2.7){pp.hit=true;pp.mesh.visible=false;FUN3400.popN++;SET.money[0]+=1000;R.popTotal++;setBubble3300('ポップ！ '+FUN3400.popN+'/12');if(FUN3400.popN>=12){SET.money[0]+=30000;R.popClears++;recSave3500();showComment('風船 全割り！ ¥31,000');setBubble3300('風船 全部割った！');setTimeout(()=>{FUN3400.pops.forEach(p2=>{p2.hit=false;p2.mesh.visible=true;});FUN3400.popN=0;},8000);}else if(FUN3400.popN%4===0)recSave3500();}} // 追加: 風船割り
+    for(const pp of FUN3400.pops){if(CHAL4200.cur!=='pops')break;if(pp.hit)continue;if(Math.hypot(lp.S.x-pp.x,lp.S.z-pp.z)<2.7){pp.hit=true;pp.mesh.visible=false;FUN3400.popN++;SET.money[0]+=1000;R.popTotal++;setBubble3300('ポップ！ '+FUN3400.popN+'/12');if(FUN3400.popN>=12){SET.money[0]+=30000;R.popClears++;recSave3500();showComment('風船 全割り！ ¥31,000');setBubble3300('風船 全部割った！');setTimeout(()=>{FUN3400.pops.forEach(p2=>{p2.hit=false;p2.mesh.visible=true;});FUN3400.popN=0;},8000);}else if(FUN3400.popN%4===0)recSave3500();}} // 追加: 風船割り
     const hud=FUN3400.hud;if(hud){if(parts.length){hud.style.display='block';const s=parts.join('　|　');if(hud._s!==s){hud._s=s;hud.textContent=s;}}else hud.style.display='none';} // 追加: HUD2更新
   }catch(e){} // 追加: 安全に
 }; // 追加: 追加ミニゲーム（広場版）ここまで
@@ -6873,11 +6873,11 @@ funStep3300=function(dt){ // 追加: パークの動きとミニゲーム（最�
     if(FUN3300.hopT>=0)FUN3300.hopT+=dt;if(FUN3300.hopT>FUN3300.hopDur)FUN3300.hopT=-1; // 追加: ジャンプの進行
     if(SET.mode==='free'){ // 追加: フリーランでミニゲーム
       if(FUN3300.hopT<0){for(const pd of FUN3300.pads){const align=Math.sin(lp.S.h)*Math.sin(pd.h||0)+Math.cos(lp.S.h)*Math.cos(pd.h||0);if(Math.hypot(cxp-pd.x,czp-pd.z)<6&&spd>35&&align>0.5){FUN3300.hopT=0;FUN3300.hopH=Math.min(4.5,1.6+spd/55);setBubble3300('ジャンプ！');break;}}} // 追加: ジャンプ台
-      for(const r of FUN3300.rings){if(r.hit)continue;let hit=false;const dd=Math.hypot(cxp-r.x,czp-r.z); // 追加: 的当て（輪の面を通った時だけ）
+      for(const r of FUN3300.rings){if(CHAL4200.cur!=='rings')break;if(r.hit)continue;let hit=false;const dd=Math.hypot(cxp-r.x,czp-r.z); // 追加: 的当て（輪の面を通った時だけ）
         if(dd<1.3)hit=true; // 追加: 中心を通った
         else if(pxp!==null&&dd<3.8){const rh=r.mesh.rotation.y;const nx=Math.sin(rh),nz=Math.cos(rh);const s0=(pxp-r.x)*nx+(pzp-r.z)*nz;const s1=(cxp-r.x)*nx+(czp-r.z)*nz;if(s0*s1<0)hit=true;} // 追加: 輪の面をくぐった
         if(hit){r.hit=true;r.mesh.material=LM(0x22c55e);FUN3300.ringN++;setBubble3300('的当て ナイス！ '+FUN3300.ringN+'/10');if(FUN3300.ringN>=10){SET.money[0]+=100000;save();showComment('的当てコンプリート！ ¥100,000');setBubble3300('的当て 全部命中！すごい！');setTimeout(()=>{FUN3300.rings.forEach(r2=>{r2.hit=false;r2.mesh.material=LM(0xffd700);});FUN3300.ringN=0;},6000);}}} // 追加: 的当て
-      for(const pn of FUN3300.panels){if(pn.down&&pn.fall<1){pn.fall=Math.min(1,pn.fall+dt*2.6);pn.pivot.rotation.x=-1.35*pn.fall;}if(!pn.down&&Math.hypot(cxp-pn.x,czp-pn.z)<2.6){pn.down=true;FUN3300.panelN++;setBubble3300('ストライク！ '+pn.num+'番');if(FUN3300.panelN>=9){SET.money[0]+=50000;save();showComment('ストラックアウト達成！ ¥50,000');setBubble3300('全部倒した！やったね！');setTimeout(()=>{FUN3300.panels.forEach(p2=>{p2.down=false;p2.fall=0;p2.pivot.rotation.x=0;});FUN3300.panelN=0;},15000);}}} // 追加: ストラックアウト
+      for(const pn of FUN3300.panels){if(pn.down&&pn.fall<1){pn.fall=Math.min(1,pn.fall+dt*2.6);pn.pivot.rotation.x=-1.35*pn.fall;}if(!pn.down&&CHAL4200.cur==='panels'&&Math.hypot(cxp-pn.x,czp-pn.z)<2.6){pn.down=true;FUN3300.panelN++;setBubble3300('ストライク！ '+pn.num+'番');if(FUN3300.panelN>=9){SET.money[0]+=50000;save();showComment('ストラックアウト達成！ ¥50,000');setBubble3300('全部倒した！やったね！');setTimeout(()=>{FUN3300.panels.forEach(p2=>{p2.down=false;p2.fall=0;p2.pivot.rotation.x=0;});FUN3300.panelN=0;},15000);}}} // 追加: ストラックアウト
     } // 追加: ミニゲームここまで
     const hud=FUN3300.hud;if(hud){const show=(state==='game'&&SET.mode==='free');hud.style.display=show?'block':'none';if(show){const s='的当て '+FUN3300.ringN+'/10　|　ストラックアウト '+FUN3300.panelN+'/9　|　最高速ベスト '+(SET.funBest||0)+' km/h';if(hud._s!==s){hud._s=s;hud.textContent=s;}}} // 追加: HUD更新
     FUN3600.prevX=cxp;FUN3600.prevZ=czp; // 追加: 位置を覚える
@@ -6892,14 +6892,14 @@ function funStep3700(dt){ // 追加: 土地のゲーム（丘・最高速・駐�
     } // 追加: 駐車ここまで
     const lp=(SET.netMode&&!SET.host)?players[1]:players[0];if(!lp||!lp.S)return;const R=SET.gameRecords;const spd=Math.hypot(lp.S.u,lp.S.v)*3.6; // 追加: 自分の車と記録
     const mh=moundH3700(lp.S.x,lp.S.z);const H=FUN3700.hill; // 追加: ヒルクライム（丘）
-    if(mh>0.2&&!H.wasIn){H.active=true;H.maxH=0;H.stopT=0;setBubble3300('ヒルクライム 開始！');} // 追加: 丘に入ったら開始
+    if(mh>0.2&&!H.wasIn&&CHAL4200.cur==='hill'){H.active=true;H.maxH=0;H.stopT=0;setBubble3300('ヒルクライム 開始！');} // 追加: 丘に入ったら開始
     H.wasIn=mh>0.2; // 追加: 丘の中かどうか
     if(H.active){if(mh>H.maxH)H.maxH=mh; // 追加: 高さを記録
       if(spd<3)H.stopT+=dt;else H.stopT=0; // 追加: 止まったら終わり
       if((mh<=0.2&&H.maxH>3)||(H.stopT>1.5&&H.maxH>3)){const m2=Math.floor(H.maxH);const prize=m2>=22?100000:(m2>=18?60000:(m2>=14?30000:(m2>=9?15000:(m2>=5?5000:0))));if(prize>0)SET.money[0]+=prize;if(m2>(SET.funHillBest||0))SET.funHillBest=m2;if(R)R.hillPlays++;recSave3500();showComment('ヒルクライム: '+m2+'m まで登った！'+(prize>0?' ¥'+prize.toLocaleString():''));setBubble3300(m2+'m まで登った！');H.active=false;H.maxH=0;H.stopT=0;} // 追加: 精算
       else if(H.stopT>1.5||(mh<=0.2&&H.maxH<=3)){H.active=false;H.maxH=0;H.stopT=0;}} // 追加: 終了
     if(spd>FUN3700.runMax)FUN3700.runMax=spd; // 追加: 最高速（土地のどこでも）
-    if(FUN3700.runMax>=200&&spd<40){const zm=Math.floor(FUN3700.runMax);const prize=zm>=300?80000:(zm>=250?30000:10000);SET.money[0]+=prize;if(zm>(SET.funBest||0)){SET.funBest=zm;setBubble3300('最高速 新記録 '+zm+'km/h！');}showComment('最高速チャレンジ: '+zm+' km/h　¥'+prize.toLocaleString());save();FUN3700.runMax=0;} // 追加: 最高速の精算
+    if(FUN3700.runMax>=200&&spd<40&&CHAL4200.cur==='speed'){const zm=Math.floor(FUN3700.runMax);const prize=zm>=300?80000:(zm>=250?30000:10000);SET.money[0]+=prize;if(zm>(SET.funBest||0)){SET.funBest=zm;setBubble3300('最高速 新記録 '+zm+'km/h！');}showComment('最高速チャレンジ: '+zm+' km/h　¥'+prize.toLocaleString());save();FUN3700.runMax=0;} // 追加: 最高速の精算
     if(spd<40&&FUN3700.runMax<200)FUN3700.runMax=0; // 追加: リセット
   }catch(e){} // 追加: 安全に
 } // 追加: 土地のゲームここまで
@@ -6986,7 +6986,7 @@ function funStep4000(dt){ // 追加: 徒歩ゲームの毎フレーム処理
   if(wPos){ // 追加: 歩いているときのゲーム
     const ch=FUN4000.chest; // 追加: 宝箱
     if(ch&&Math.hypot(wPos.x-ch.position.x,wPos.z-ch.position.z)<2.2){SET.money[0]+=20000;SET.gameRecords.treasure++;recSave3500();showComment('宝箱をあけた！ +¥20,000');FUN4000.placeChest();} // 追加: 宝探し
-    if(FUN3400.pops&&FUN3400.pops.length){ // 追加: 徒歩でも風船割り
+    if(FUN3400.pops&&FUN3400.pops.length&&CHAL4200.cur==='pops'){ // 追加: 徒歩でも風船割り
       for(const pp of FUN3400.pops){if(pp.hit)continue; // 追加: まだ割れてない風船
         if(Math.hypot(wPos.x-pp.x,wPos.z-pp.z)<1.4){pp.hit=true;pp.mesh.visible=false;FUN3400.popN++;SET.money[0]+=1000;SET.gameRecords.popTotal++; // 追加: 割れた
           if(FUN3400.popN>=12){SET.money[0]+=30000;SET.gameRecords.popClears++;showComment('風船 全割り！ ¥31,000');setTimeout(()=>{FUN3400.pops.forEach(p2=>{p2.hit=false;p2.mesh.visible=true;});FUN3400.popN=0;},8000);}else showComment('ポン！ +¥1,000'); // 追加: 全割りのごほうび
@@ -7054,6 +7054,141 @@ function funStep4100(dt){ // 追加: オブジェのアニメ
 } // 追加: アニメここまで
 const _pedStep4100=pedStep;pedStep=function(dt){const r=_pedStep4100.apply(this,arguments);try{funStep4100(dt);}catch(e){}return r;}; // 追加: 毎フレーム呼ぶ
 // ======== 追加: v41.0 ここまで ========
+// ======== 追加: v42.0 挑戦ボタン式＋自己ベスト＆ランク＋徒歩アスレチック（ジャンプ）＋HUD整理 ========
+if(SET.gameRecords){if(!SET.gameRecords.chalBest)SET.gameRecords.chalBest={};if(SET.gameRecords.athBest===undefined)SET.gameRecords.athBest=0;if(SET.gameRecords.athPlays===undefined)SET.gameRecords.athPlays=0;} // 追加: 記録の項目
+const CHAL4200={cur:null,t0:0,data:{},btn:null,plats:[],jump:{y:0,vy:0,init:false},athStart:null,athGoal:null}; // 追加: 挑戦の状態
+const CHAL_NAMES4200={rings:'的当て',panels:'ストラックアウト',parking:'駐車チャレンジ',bowling:'ボウリング',batting:'バッティング',drift:'ドリフト',hill:'ヒルクライム',speed:'最高速',pops:'風船割り',athletic:'アスレチック'}; // 追加: ゲーム名
+if(SET.route===9){ // 追加: アスレチックコースを作る
+  const C=FUN3500.plaza,pg=scene.children.find(o=>o.name==='plaza3500'); // 追加: 参照
+  const pcols=[0xff6b6b,0xffa94d,0xffd34d,0x69db7c,0x4dabf7,0xb197fc]; // 追加: 台の色
+  const sx=C.x-150,sz=C.z-100;CHAL4200.athStart={x:sx,z:sz}; // 追加: スタート地点
+  const pad=new THREE.Mesh(new THREE.BoxGeometry(5.5,0.3,5.5),LM(0xffd34d));pad.position.set(sx,0.31,sz);pg.add(pad); // 追加: スタート台
+  for(let i=0;i<14;i++){const px=sx+12+i*8.5,pz=sz+((i%2)?4:-4),top=1.15+i*0.85; // 追加: 台を並べる
+    const pl2=new THREE.Mesh(new THREE.BoxGeometry(4.4,0.5,4.4),LM(pcols[i%6]));pl2.position.set(px,top-0.25,pz);pg.add(pl2); // 追加: 台
+    const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,Math.max(0.5,top-0.5),6),LM(0x9aa5b1));pole.position.set(px,(top-0.5)/2,pz);pg.add(pole); // 追加: 支柱
+    CHAL4200.plats.push({x:px,z:pz,hw:2.2,hd:2.2,top:top});} // 追加: 台の登録
+  const gx=sx+12+14*8.5+6,gz=sz;CHAL4200.athGoal={x:gx,z:gz,top:13.2}; // 追加: ゴール地点
+  const gp=new THREE.Mesh(new THREE.BoxGeometry(7,0.6,7),LM(0xffd700));gp.position.set(gx,12.9,gz);pg.add(gp); // 追加: ゴール台
+  const fp=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,4.6,6),LM(0x8a6d4b));fp.position.set(gx,15.5,gz);pg.add(fp); // 追加: 旗の棒
+  const fl=new THREE.Mesh(new THREE.BoxGeometry(2.2,1.3,0.08),LM(0xef4444));fl.position.set(gx+1.15,17,gz);pg.add(fl); // 追加: ゴールの旗
+  CHAL4200.plats.push({x:gx,z:gz,hw:3.5,hd:3.5,top:13.2,goal:true}); // 追加: ゴールの登録
+  const sg=new THREE.Mesh(new THREE.PlaneGeometry(6.4,1.6),new THREE.MeshBasicMaterial({map:signTexture3100('アスレチック','#22c55e','#ffffff'),side:THREE.DoubleSide}));sg.position.set(sx,2.4,sz+4.5);pg.add(sg); // 追加: 看板
+} // 追加: アスレチックここまで
+function chalStart4200(game){ // 追加: 挑戦を始める
+  const R=SET.gameRecords;CHAL4200.cur=game;CHAL4200.t0=performance.now();const D=CHAL4200.data={}; // 追加: 初期化
+  if(game==='rings'){FUN3300.rings.forEach(r=>{r.hit=false;try{r.mesh.material=LM(0xffd700);}catch(e){}});FUN3300.ringN=0;} // 追加: 的当てリセット
+  if(game==='panels'){FUN3300.panels.forEach(p=>{p.down=false;p.fall=0;if(p.pivot)p.pivot.rotation.x=0;});FUN3300.panelN=0;} // 追加: パネルリセット
+  if(game==='parking'){FUN3400.parkHold=0;FUN3500.parkStartT=performance.now();D.startClears=R.parkClears;} // 追加: 駐車の準備
+  if(game==='bowling'){FUN3400.pins.forEach(p=>{p.down=false;if(p.pivot)p.pivot.rotation.x=0;});FUN3400.bowlN=0;FUN3400.bowlState='ready';D.startGames=R.bowlGames;D.startPins=R.bowlPins;} // 追加: ボウリングリセット
+  if(game==='batting'){const b=FUN3400.bat;if(b){b.state='ready';b.timer=1;if(b.ball)b.ball.visible=false;}D.hits0=R.batHits;D.bestDist=0;D.prevState='ready';} // 追加: バッティングの準備
+  if(game==='drift'){FUN3400.drift.best=0;FUN3400.drift.in=false;D.plays0=R.driftPlays;D.best=0;} // 追加: ドリフトの準備
+  if(game==='hill'){FUN3700.hill.active=false;FUN3700.hill.maxH=0;FUN3700.hill.wasIn=false;D.plays0=R.hillPlays;D.maxH=0;} // 追加: 丘の準備
+  if(game==='speed'){FUN3700.runMax=0;D.max=0;D.t=45;} // 追加: 最高速の準備
+  if(game==='pops'){FUN3400.pops.forEach(p=>{p.hit=false;p.mesh.visible=true;});FUN3400.popN=0;} // 追加: 風船リセット
+  if(game==='athletic'){D.t=0;D.started=false;SET.gameRecords.athPlays++;} // 追加: アスレチックの準備
+  showComment(CHAL_NAMES4200[game]+' 挑戦スタート！');try{recSave3500();}catch(e){} // 追加: 合図
+} // 追加: 挑戦開始ここまで
+function chalEnd4200(score,detail){ // 追加: 挑戦の結果を出す
+  const game=CHAL4200.cur;if(!game)return;CHAL4200.cur=null; // 追加: 終了
+  score=Math.max(0,Math.min(100,Math.round(score)));const rk=rankLetter(score); // 追加: ランク計算
+  const R=SET.gameRecords;const prev=(R.chalBest&&R.chalBest[game])||0;const isBest=score>prev; // 追加: 自己ベスト判定
+  if(isBest){R.chalBest[game]=score;} // 追加: ベスト保存
+  if(game==='athletic'&&score>0)R.athBest++; // 追加: アスレチック完走回数
+  const bonus=score*200;if(bonus>0)SET.money[0]+=bonus; // 追加: ランクボーナス
+  try{recSave3500();}catch(e){} // 追加: 保存
+  showComment(CHAL_NAMES4200[game]+' 結果：'+detail+'　スコア '+score+'（'+rk+'ランク）'+(isBest?' 自己ベスト更新！':'')+(bonus>0?' ボーナス ¥'+bonus.toLocaleString():'')); // 追加: 結果表示
+  try{setBubble3300(isBest?'新記録！すごい！':(CHAL_NAMES4200[game]+' '+score+'点（'+rk+'）'));}catch(e){} // 追加: ピコの反応
+} // 追加: 結果ここまで
+function chalCancel4200(){if(CHAL4200.cur){showComment('挑戦をやめたよ');CHAL4200.cur=null;}} // 追加: 挑戦をやめる
+{const b=document.createElement('button');b.id='chalBtn4200';b.style.cssText='position:fixed;left:50%;bottom:172px;transform:translateX(-50%);z-index:96;display:none;background:#ffd34d;color:#14100a;border:none;border-radius:999px;padding:13px 24px;font-size:17px;font-weight:800;box-shadow:0 4px 14px rgba(0,0,0,.45)';document.body.appendChild(b);CHAL4200.btn=b; // 追加: 挑戦ボタン
+ b.addEventListener('click',()=>{if(CHAL4200.cur)chalCancel4200();else if(b.dataset.game)chalStart4200(b.dataset.game);});} // 追加: ボタンの動作
+function funStep4200(dt){ // 追加: 挑戦の進行・ジャンプ・HUD整理
+  if(SET.route!==9)return; // 追加: パークだけ
+  const inGame=(state==='game'&&SET.mode==='free'); // 追加: 条件
+  const lp=(SET.netMode&&!SET.host)?players[1]:players[0];if(!lp||!lp.S)return; // 追加: 自分
+  const R=SET.gameRecords;const C=FUN3500.plaza; // 追加: 参照
+  const foot=!!onFoot;const pos=foot&&walkChar?walkChar.g.position:lp.S; // 追加: 今いる場所
+  const spd=Math.hypot(lp.S.u,lp.S.v)*3.6; // 追加: 車の速度
+  // 追加: ジャンプ（歩行中はドリフトボタン＝ジャンプ）
+  if(foot&&walkChar){const J=CHAL4200.jump,wk=walkChar.g;if(!J.init){J.y=wk.position.y;J.vy=0;J.init=true;} // 追加: ジャンプの初期化
+    let sup=groundYAt(wk.position.x,wk.position.z); // 追加: 地面の高さ
+    for(const p of CHAL4200.plats){if(Math.abs(wk.position.x-p.x)<p.hw+0.25&&Math.abs(wk.position.z-p.z)<p.hd+0.25&&J.vy<=0.2&&J.y>=p.top-0.55&&J.y<=p.top+0.45)sup=Math.max(sup,p.top);} // 追加: 台の上に乗れる
+    const hbOn=(typeof K!=='undefined')&&(K['Space']||K['ShiftLeft']||K['ShiftRight']); // 追加: ドリフトボタン（キー共有マップ）
+    if(hbOn&&!J.prevHb&&J.y<=sup+0.06)J.vy=8.4;J.prevHb=hbOn; // 追加: 押した瞬間にジャンプ（押しっぱなしはダッシュのまま）
+    J.vy-=21*dt;J.y+=J.vy*dt;if(J.y<=sup){J.y=sup;J.vy=0;}wk.position.y=J.y; // 追加: 重力と着地
+  } else CHAL4200.jump.init=false; // 追加: 車に戻ったらリセット
+  // 追加: 挑戦ボタンの表示
+  const btn=CHAL4200.btn; // 追加: ボタン
+  if(btn){let label='',game=''; // 追加: 候補を探す
+    if(!inGame){btn.style.display='none';} // 追加: ゲーム外は隠す
+    else if(CHAL4200.cur){btn.style.display='block';btn.textContent='挑戦をやめる';btn.dataset.game='';} // 追加: 挑戦中はやめるボタン
+    else{ // 追加: 近くのゲームを探す
+      const cand=[];const d2=(x,z)=>Math.hypot(pos.x-x,pos.z-z); // 追加: 距離
+      if(!foot){ // 追加: 車のゲーム
+        let rd=1e9;for(const r of FUN3300.rings)rd=Math.min(rd,d2(r.x,r.z));if(rd<30)cand.push(['rings',rd]); // 追加: 的当て
+        if(d2(C.x-88,C.z+208)<30)cand.push(['panels',d2(C.x-88,C.z+208)]); // 追加: ストラックアウト
+        if(d2(C.x+208,C.z+100)<34)cand.push(['parking',d2(C.x+208,C.z+100)]); // 追加: 駐車
+        if(d2(C.x-232,C.z+40)<34)cand.push(['bowling',d2(C.x-232,C.z+40)]); // 追加: ボウリング
+        if(d2(C.x+220,C.z-120)<34)cand.push(['batting',d2(C.x+220,C.z-120)]); // 追加: バッティング
+        const dr=FUN3500.driftRect;if(dr&&Math.abs(pos.x-dr.x)<dr.w/2+12&&Math.abs(pos.z-dr.z)<dr.d/2+12)cand.push(['drift',5]); // 追加: ドリフト
+        if(d2(FUN3700.mound.x,FUN3700.mound.z)<118)cand.push(['hill',d2(FUN3700.mound.x,FUN3700.mound.z)]); // 追加: 丘
+        if(d2(C.x,C.z+356)<48)cand.push(['speed',d2(C.x,C.z+356)]); // 追加: 最高速（入口）
+        if(d2(C.x,C.z)<175)cand.push(['pops',d2(C.x,C.z)]); // 追加: 風船
+      } else { // 追加: 歩きのゲーム
+        if(CHAL4200.athStart&&d2(CHAL4200.athStart.x,CHAL4200.athStart.z)<16)cand.push(['athletic',d2(CHAL4200.athStart.x,CHAL4200.athStart.z)]); // 追加: アスレチック
+        if(d2(C.x,C.z)<175)cand.push(['pops',d2(C.x,C.z)]); // 追加: 風船
+      } // 追加: 候補ここまで
+      if(cand.length){cand.sort((a,b2)=>a[1]-b2[1]);game=cand[0][0];label=CHAL_NAMES4200[game]+'に挑戦する';} // 追加: 一番近いもの
+      btn.style.display=game?'block':'none';btn.textContent=label;btn.dataset.game=game; // 追加: 表示
+    } // 追加: 候補表示ここまで
+  } // 追加: ボタンここまで
+  // 追加: 挑戦の進行と終了判定
+  const cur=CHAL4200.cur,D=CHAL4200.data;const el=(performance.now()-CHAL4200.t0)/1000; // 追加: 経過時間
+  if(cur&&inGame){ // 追加: 挑戦中
+    if(cur==='rings'&&FUN3300.ringN>=10)chalEnd4200(130-el,'タイム '+el.toFixed(1)+'秒'); // 追加: 的当て完走
+    else if(cur==='panels'&&FUN3300.panelN>=9)chalEnd4200(120-el,'タイム '+el.toFixed(1)+'秒'); // 追加: 全倒し
+    else if(cur==='parking'&&(R.parkClears-(D.startClears||0))>=4)chalEnd4200(150-el,'4回駐車 タイム '+el.toFixed(1)+'秒'); // 追加: 駐車4回
+    else if(cur==='bowling'&&(R.bowlGames-(D.startGames||0))>=1){const pins=R.bowlPins-(D.startPins||0);chalEnd4200(pins*10,pins+' 本');} // 追加: ボウリング1ゲーム
+    else if(cur==='batting'){const b=FUN3400.bat;if(b){if(b.state==='hit')D.wasHit=true;if(D.wasHit&&b.state==='dead'){D.wasHit=false;const dd=Math.floor(Math.hypot(b.ball.position.x-b.plate.x,b.ball.position.z-b.plate.z));if(dd>D.bestDist)D.bestDist=dd;}} // 追加: 飛距離を測る
+      if((R.batHits-(D.hits0||0))>=3)chalEnd4200(D.bestDist,'最長 '+D.bestDist+'m');} // 追加: 3球で終了
+    else if(cur==='drift'){if(FUN3400.drift.in&&FUN3400.drift.best>(D.best||0))D.best=FUN3400.drift.best;if((R.driftPlays-(D.plays0||0))>=1)chalEnd4200((D.best||0)/300,Math.floor(D.best||0).toLocaleString()+' pt');} // 追加: ドリフト精算
+    else if(cur==='hill'){if(FUN3700.hill.active&&FUN3700.hill.maxH>(D.maxH||0))D.maxH=FUN3700.hill.maxH;if((R.hillPlays-(D.plays0||0))>=1)chalEnd4200((D.maxH||0)*4,Math.floor(D.maxH||0)+'m');} // 追加: 丘の精算
+    else if(cur==='speed'){if(spd>(D.max||0))D.max=spd;D.t-=dt;const prevMax=D.prevRunMax||0; // 追加: 最高速の計測
+      if(prevMax>=200&&FUN3700.runMax===0)chalEnd4200((D.max||0)-180,Math.floor(D.max||0)+' km/h'); // 追加: 精算されたら終了
+      else if(D.t<=0)chalEnd4200((D.max||0)-180,Math.floor(D.max||0)+' km/h（時間切れ）');D.prevRunMax=FUN3700.runMax;} // 追加: 時間切れ
+    else if(cur==='pops'&&FUN3400.popN>=12)chalEnd4200(110-el,'タイム '+el.toFixed(1)+'秒'); // 追加: 風船全割り
+    else if(cur==='athletic'&&foot&&walkChar){const wk=walkChar.g; // 追加: アスレチック
+      if(!D.started&&CHAL4200.athStart&&Math.hypot(wk.position.x-CHAL4200.athStart.x,wk.position.z-CHAL4200.athStart.z)<3){D.started=true;D.t=0;showComment('アスレチック スタート！');} // 追加: スタート台に乗ったら開始
+      if(D.started){D.t+=dt;const gl=CHAL4200.athGoal;if(gl&&Math.abs(wk.position.x-gl.x)<3.5&&Math.abs(wk.position.z-gl.z)<3.5&&CHAL4200.jump.y>gl.top-1)chalEnd4200(140-D.t,'タイム '+D.t.toFixed(1)+'秒');} // 追加: ゴール判定
+    } // 追加: アスレチックここまで
+    if(CHAL4200.cur&&cur!=='speed'&&cur!=='athletic'&&el>150)chalEnd4200(0,'時間切れ'); // 追加: 長すぎる挑戦は終了
+    if(CHAL4200.cur&&cur==='athletic'&&D.started&&D.t>180)chalEnd4200(0,'時間切れ'); // 追加: アスレチックの制限時間
+  } // 追加: 進行ここまで
+  // 追加: HUDは1つに整理（挑戦中だけ出す）
+  const h1=FUN3300.hud,h2=FUN3400.hud; // 追加: HUD参照
+  if(h1&&h2){let s=''; // 追加: 表示文
+    if(inGame&&cur){const nm=CHAL_NAMES4200[cur]; // 追加: 挑戦中の情報
+      if(cur==='rings')s=nm+' '+FUN3300.ringN+'/10';
+      else if(cur==='panels')s=nm+' '+FUN3300.panelN+'/9';
+      else if(cur==='parking')s=nm+' '+(R.parkClears-(D.startClears||0))+'/4';
+      else if(cur==='bowling')s=nm+' '+FUN3400.bowlN+'/10';
+      else if(cur==='batting')s=nm+' ヒット '+(R.batHits-(D.hits0||0))+'/3';
+      else if(cur==='drift')s=nm+' '+Math.floor(Math.max(FUN3400.drift.best||0,D.best||0))+' pt';
+      else if(cur==='hill')s=nm+' '+Math.floor(Math.max(FUN3700.hill.maxH||0,D.maxH||0))+' m';
+      else if(cur==='speed')s=nm+' 最高 '+Math.floor(D.max||0)+' km/h（あと'+Math.max(0,Math.ceil(D.t||0))+'秒）';
+      else if(cur==='pops')s=nm+' '+FUN3400.popN+'/12';
+      else if(cur==='athletic')s=nm+(D.started?(' '+D.t.toFixed(1)+'秒'):' スタート台に乗ってね');
+      else s=nm; // 追加: その他
+    } else if(inGame&&foot&&FUN4000.tag.active)s='鬼ごっこ中：あと'+Math.ceil(FUN4000.tag.t)+'秒'; // 追加: 鬼ごっこの残り
+    else if(inGame&&foot&&FUN4000.chest)s='宝箱まで約'+Math.round(Math.hypot(pos.x-FUN4000.chest.position.x,pos.z-FUN4000.chest.position.z))+'m'; // 追加: 宝箱の距離
+    if(s){h1.style.display='block';if(h1._s42!==s){h1._s42=s;h1.textContent=s;}}else h1.style.display='none'; // 追加: HUD1にだけ出す
+    h2.style.display='none';if(h2._s)h2._s=''; // 追加: HUD2は使わない
+  } // 追加: HUD整理ここまで
+} // 追加: 挑戦の処理ここまで
+const _pedStep4200=pedStep;pedStep=function(dt){const r=_pedStep4200.apply(this,arguments);try{funStep4200(dt);}catch(e){}return r;}; // 追加: 毎フレーム呼ぶ
+const _onFootStep4200=onFootStep;onFootStep=function(dt){const r=_onFootStep4200.apply(this,arguments);try{if(onFoot&&walkChar&&CHAL4200.jump.init)walkChar.g.position.y=CHAL4200.jump.y;}catch(e){}return r;}; // 追加: ジャンプの高さを歩行処理の後に反映する
+const _renderRecords4200=renderRecords3500;renderRecords3500=function(){_renderRecords4200();try{const p=document.getElementById('recordsPanel3500');if(p&&SET.gameRecords.chalBest){let ex=document.getElementById('chalRecords4200');if(!ex){ex=document.createElement('div');ex.id='chalRecords4200';p.appendChild(ex);}const order=['rings','panels','parking','bowling','batting','drift','hill','speed','pops','athletic'];const rows=order.map(g=>{const sc=SET.gameRecords.chalBest[g];if(!sc)return '';const rk=rankLetter(sc);return '<div style="display:flex;justify-content:space-between;border-bottom:1px solid #22303f;padding:7px 2px"><span>'+CHAL_NAMES4200[g]+'</span><span><b style="color:'+rankColor(rk)+'">'+rk+'</b>　'+sc+' 点</span></div>';}).join('');const ath=SET.gameRecords.athBest;ex.innerHTML='<div style="margin-top:14px;font-size:14px"><div style="color:#ffd700;font-weight:700;margin-bottom:4px">チャレンジ自己ベスト</div>'+(rows||'<div style="color:#8fa6bb">まだ記録なし。遊具の近くで「挑戦する」を押してね</div>')+(ath?'<div style="margin-top:6px;color:#8fa6bb;font-size:12px">アスレチック完走 '+ath+' 回</div>':'')+'</div>';}}catch(e){}}; // 追加: 記録にチャレンジのランクを足す
+// ======== 追加: v42.0 ここまで ========
 applyQual();go('main');layout();requestAnimationFrame(loop);
 setTimeout(netAutoRejoin,1200); // 追加: オンライン切替でのリロードなら部屋へ自動で戻る
 })();
