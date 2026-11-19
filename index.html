@@ -6226,6 +6226,101 @@ setInterval(()=>{try{ // 追加: 自分の歩行状態を相手に送る（約0.
   conn.send({walker:{on:on,x:on?walkChar.g.position.x:0,z:on?walkChar.g.position.z:0,h:(typeof walkHeading!=='undefined'?walkHeading:0),av:SET.avatar,nm:netTagName2900(onFootPl().k)}}); // 追加: 位置・向き・着せ替え・名前を送る
 }catch(e){}},120); // 追加: 歩行の送信ここまで
 // ======== 追加: v30.0 ここまで ========
+// ======== 追加: v31.0 街並みバリエーション（建物の種類・色・屋上・街路樹） ========
+function buildingTexture3100(col,seed,cols,rows){ // 追加: 窓の並び方を変えられるビルの絵を作る
+  const cv=document.createElement('canvas');cv.width=128;cv.height=256; // 追加: 絵の大きさ
+  const c2=cv.getContext('2d');c2.fillStyle='#'+col.toString(16).padStart(6,'0');c2.fillRect(0,0,128,256); // 追加: 壁の色
+  const rnd2=(a)=>{const x=Math.sin(seed*127.1+a*311.7)*43758.5453;return x-Math.floor(x);}; // 追加: 決まった乱数
+  for(let r=0;r<rows;r++)for(let c3=0;c3<cols;c3++){ // 追加: 窓を並べる
+    const lit=rnd2(r*cols+c3)>0.5; // 追加: 明かりが付いている窓
+    c2.fillStyle=lit?'#fde68a':'#22303f'; // 追加: 明るい窓と暗い窓
+    const ww=Math.floor(108/cols),wh=Math.floor(232/rows); // 追加: 窓の大きさ
+    c2.fillRect(10+c3*(ww+4),12+r*(wh+4),ww,Math.max(6,wh-4)); // 追加: 窓を描く
+  } // 追加: 窓ここまで
+  return new THREE.CanvasTexture(cv); // 追加: 絵を返す
+} // 追加: ビルの絵ここまで
+function signTexture3100(text,bg,fg){ // 追加: 看板の絵を作る
+  const cv=document.createElement('canvas');cv.width=256;cv.height=64;const c2=cv.getContext('2d'); // 追加: 看板の絵
+  c2.fillStyle=bg;c2.fillRect(0,0,256,64);c2.strokeStyle=fg;c2.lineWidth=4;c2.strokeRect(3,3,250,58); // 追加: 看板の色と枠
+  c2.fillStyle=fg;c2.font='bold 30px sans-serif';c2.textAlign='center';c2.textBaseline='middle';c2.fillText(text,128,34); // 追加: 看板の文字
+  return new THREE.CanvasTexture(cv); // 追加: 絵を返す
+} // 追加: 看板の絵ここまで
+function variedBuilding3100(g,x,z,w,d,h,kind,seed){ // 追加: いろんな種類の建物を1つ作る
+  const hash=(a)=>{const v=Math.sin(seed*91.7+a*57.3)*43758.5453;return v-Math.floor(v);}; // 追加: 決まった乱数
+  const conf={ // 追加: 種類ごとの壁の色と窓の並び
+    glass:{col:0x2e4a5e,cols:6,rows:14},brick:{col:0x8a4b38,cols:3,rows:8},mansion:{col:0xd8cfb8,cols:4,rows:9},
+    office:{col:0xb9c0c7,cols:7,rows:12},hotel:{col:0xcfc0a0,cols:5,rows:11},conveni:{col:0xf1f5f9,cols:6,rows:2},house:{col:0xe8dcc4,cols:2,rows:2}
+  }[kind]||{col:0x9aa5b1,cols:4,rows:10}; // 追加: 種類の設定
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshLambertMaterial({map:buildingTexture3100(conf.col,seed,conf.cols,conf.rows)}));m.position.set(x,0.16+h/2,z);g.add(m); // 追加: 建物本体
+  if(kind==='house'){ // 追加: 家は三角屋根
+    const roof=new THREE.Mesh(new THREE.ConeGeometry(Math.max(w,d)*0.78,2.6,4),LM(0x7c4a21));roof.position.set(x,0.16+h+1.3,z);roof.rotation.y=Math.PI/4;roof.scale.set(1,1,d/w);g.add(roof); // 追加: 屋根
+  }else if(kind==='glass'){ // 追加: ガラスビルは一段引っ込んだ上層階
+    const top=new THREE.Mesh(new THREE.BoxGeometry(w*0.7,3.4,d*0.7),new THREE.MeshLambertMaterial({map:buildingTexture3100(conf.col,seed+5,5,2)}));top.position.set(x,0.16+h+1.7,z);g.add(top); // 追加: 上層階
+    const cap=new THREE.Mesh(new THREE.BoxGeometry(w+0.6,0.5,d+0.6),LM(0x1f2937));cap.position.set(x,0.16+h+0.25,z);g.add(cap); // 追加: 屋上のふち
+  }else if(kind==='conveni'){ // 追加: コンビニは帯と看板とガラス面
+    const band=new THREE.Mesh(new THREE.BoxGeometry(w+0.3,1.1,d+0.3),LM(0x059669));band.position.set(x,0.16+h-1.2,z);g.add(band); // 追加: 緑の帯
+    const sign=new THREE.Mesh(new THREE.PlaneGeometry(w*0.7,1.4),new THREE.MeshBasicMaterial({map:signTexture3100('コンビニ','#059669','#ffffff'),side:THREE.DoubleSide}));sign.position.set(x,0.16+h-1.2,z+d/2+0.25);g.add(sign); // 追加: 看板
+    const glassF=new THREE.Mesh(new THREE.PlaneGeometry(w*0.85,2.2),LM(0x9fd8ef));glassF.position.set(x,0.16+1.3,z+d/2+0.06);g.add(glassF); // 追加: ガラス面
+  }else{ // 追加: そのほかの建物の屋上まわり
+    const cap=new THREE.Mesh(new THREE.BoxGeometry(w+0.6,0.5,d+0.6),LM(0x1f2937));cap.position.set(x,0.16+h+0.25,z);g.add(cap); // 追加: 屋上のふち
+    if(hash(1)>0.45){const tank=new THREE.Mesh(new THREE.CylinderGeometry(1.6,1.6,2.6,10),LM(0x9ca3af));tank.position.set(x-w/4,0.16+h+1.8,z-d/4);g.add(tank);const tc=new THREE.Mesh(new THREE.ConeGeometry(1.8,1.0,10),LM(0x6b7280));tc.position.set(x-w/4,0.16+h+3.6,z-d/4);g.add(tc);} // 追加: 屋上の水タンク
+    if(hash(2)>0.55){const panel=new THREE.Mesh(new THREE.BoxGeometry(4.4,0.15,3),LM(0x1e3a5f));panel.position.set(x+w/5,0.16+h+1.0,z+d/5);panel.rotation.x=-0.4;g.add(panel);} // 追加: ソーラーパネル
+    if(kind==='hotel'){const sign=new THREE.Mesh(new THREE.PlaneGeometry(9,1.9),new THREE.MeshBasicMaterial({map:signTexture3100('🏨 HOTEL','#7c3aed','#ffffff'),side:THREE.DoubleSide}));sign.position.set(x,0.16+h+2.2,z);g.add(sign);const pole=new THREE.Mesh(new THREE.BoxGeometry(0.3,2.2,0.3),LM(0x374151));pole.position.set(x,0.16+h+0.9,z);g.add(pole);} // 追加: ホテルの屋上看板
+    if(kind==='office'&&hash(3)>0.4){const ad=['DRINK!','☕ CAFE','🚗 AUTO','SALE','📱 MOBILE'][Math.floor(hash(4)*5)];const bd=new THREE.Mesh(new THREE.PlaneGeometry(7.5,2.6),new THREE.MeshBasicMaterial({map:signTexture3100(ad,'#dc2626','#ffffff'),side:THREE.DoubleSide}));bd.position.set(x,0.16+h+1.6,z);g.add(bd);const bp=new THREE.Mesh(new THREE.BoxGeometry(0.3,1.8,0.3),LM(0x374151));bp.position.set(x,0.16+h+0.4,z);g.add(bp);} // 追加: オフィスビルの屋上広告
+    if(kind==='mansion'){const floors=Math.max(2,Math.floor(h/3));for(let f=1;f<floors;f++){for(let bx2=-1;bx2<=1;bx2++){const bal=new THREE.Mesh(new THREE.BoxGeometry(2.2,0.18,0.9),LM(0x9ca3af));bal.position.set(x+bx2*(w/3.2),0.16+f*3,z+d/2+0.45);g.add(bal);const rail=new THREE.Mesh(new THREE.BoxGeometry(2.2,0.5,0.06),LM(0x6b7280));rail.position.set(x+bx2*(w/3.2),0.16+f*3+0.3,z+d/2+0.88);g.add(rail);}}} // 追加: マンションのベランダ
+    if(kind==='brick'){const shop=new THREE.Mesh(new THREE.BoxGeometry(w*0.9,2.6,0.4),LM(0x78350f));shop.position.set(x,0.16+1.3,z+d/2+0.15);g.add(shop);const awn=new THREE.Mesh(new THREE.BoxGeometry(w*0.95,0.18,1.6),LM(0xb45309));awn.position.set(x,0.16+2.9,z+d/2+0.8);awn.rotation.x=0.25;g.add(awn);} // 追加: レンガビルの1階店舗とひさし
+  } // 追加: 屋上まわりここまで
+  return m; // 追加: 建物を返す
+} // 追加: 建物作りここまで
+function cityVariety3100(){ // 追加: 街並みにバリエーションを足す
+  if(RT.ctype!=='megacity')return; // 追加: 街マップだけ
+  const cityG=scene.children.find(o=>o.name==='city');if(!cityG)return; // 追加: 街のグループを探す
+  const hash=(a,b)=>{const v=Math.sin(a*127.1+b*311.7)*43758.5453;return v-Math.floor(v);}; // 追加: 決まった乱数
+  // 既存ビルの壁の色と窓の並びをバラバラにする（高いタワーはランドマークなのでそのまま）
+  const palette=[0x8a5a44,0xd6c9a8,0x7fb2d9,0x9db89a,0xc7ccd4,0xe0b49c,0x5b7a99,0xb8a888,0xa26769,0x6b8f71]; // 追加: 壁の色の候補
+  cityG.traverse(o=>{ // 追加: 街の全部品を見る
+    if(o.isMesh&&o.material&&o.material.map&&o.geometry&&o.geometry.type==='BoxGeometry'){ // 追加: ビル本体だけ
+      const gp=o.geometry.parameters;if(!gp||gp.height<5||gp.height>=55)return; // 追加: 小物とタワーは除く
+      const col=palette[Math.floor(hash(o.position.x,o.position.z)*palette.length)]; // 追加: 場所ごとに色を決める
+      const cols=Math.max(3,Math.min(8,Math.round(gp.width/5))),rows=Math.max(4,Math.min(18,Math.round(gp.height/3.2))); // 追加: 大きさに合った窓の数
+      o.material.map=buildingTexture3100(col,Math.floor(Math.abs(o.position.x)+Math.abs(o.position.z)),cols,rows); // 追加: 新しい壁の絵に変える
+    } // 追加: ビル判定ここまで
+  }); // 追加: 既存ビルの色替えここまで
+  // 区画の空いている角に、いろんな種類の建物を足す
+  const cx=cityData.cx,cz=cityData.cz; // 追加: 街の中心
+  const towerBlocks={'1,0':1,'2,1':1,'2,0':1}; // 追加: タワーの区画
+  const kindsInner=['glass','office','hotel','brick','mansion']; // 追加: 中心寄りの建物
+  const kindsOuter=['mansion','brick','house','conveni','office']; // 追加: 外寄りの建物
+  for(let bi=0;bi<4;bi++)for(let bj=0;bj<2;bj++){ // 追加: 区画ごとに
+    if(bi===0&&bj===0)continue; // 追加: 公園はそのまま
+    if(bi===0&&bj===1&&SET.route===7)continue; // 追加: トラングラの駐車場はそのまま
+    const bx=cx+(bi-1.5)*110,bz=cz+(bj-0.5)*110; // 追加: 区画の中心
+    const corners=towerBlocks[bi+','+bj]?[[22,25],[-22,25]]:[[22,-25],[-22,25]]; // 追加: 空いている角（タワー区画はタワーを避ける）
+    corners.forEach((cn,ci)=>{ // 追加: 角ごとに建てる
+      const seed=bi*31+bj*17+ci*7+3;const outer=(bi===0||bi===3); // 追加: 場所の情報
+      const kind=(outer?kindsOuter:kindsInner)[Math.floor(hash(seed,ci)*5)]; // 追加: 種類を決める
+      let w,d,h; // 追加: 大きさ
+      if(kind==='house'){w=12+hash(seed,1)*4;d=11+hash(seed,2)*4;h=5.5+hash(seed,3)*2;} // 追加: 家の大きさ
+      else if(kind==='conveni'){w=24+hash(seed,1)*6;d=15+hash(seed,2)*4;h=6;} // 追加: コンビニの大きさ
+      else if(kind==='glass'){w=22+hash(seed,1)*8;d=22+hash(seed,2)*8;h=26+hash(seed,3)*16;} // 追加: ガラスビルの大きさ
+      else if(kind==='hotel'){w=24+hash(seed,1)*6;d=22+hash(seed,2)*6;h=20+hash(seed,3)*10;} // 追加: ホテルの大きさ
+      else{w=20+hash(seed,1)*9;d=20+hash(seed,2)*9;h=11+hash(seed,3)*19;} // 追加: そのほかの大きさ
+      variedBuilding3100(cityG,bx+cn[0],bz+cn[1],w,d,h,kind,seed); // 追加: 建てる
+      cityData.buildings.push({x:bx+cn[0],z:bz+cn[1],w:w,d:d}); // 追加: 当たり判定とミニマップ用
+    }); // 追加: 角ここまで
+  } // 追加: 区画ここまで
+  // 街路樹を歩道沿いに植える
+  const NS=[-220,-110,0,110,220],EW=[-110,0,110];let treeN=0; // 追加: 街路の位置と本数
+  const plantTree=(x,z,s)=>{ // 追加: 木を1本植える
+    const tr=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.6,2.6,6),LM(0x7c4a21));tr.position.set(x,0.16+1.3,z);cityG.add(tr); // 追加: 幹
+    if(s>0.5){const lv=new THREE.Mesh(new THREE.ConeGeometry(2.6,6,8),LM(0x166534));lv.position.set(x,0.16+5.4,z);cityG.add(lv);} // 追加: とがった葉
+    else{const lv=new THREE.Mesh(new THREE.IcosahedronGeometry(2.7,0),LM(0x15803d));lv.position.set(x,0.16+5.2,z);cityG.add(lv);} // 追加: 丸い葉
+  }; // 追加: 木ここまで
+  NS.forEach(dx=>{for(let t=-259;t<=259;t+=37){if(EW.some(dz=>Math.abs(t-dz)<17))continue;if(hash(dx,t)<0.3)continue;if(treeN>=46)return;plantTree(cx+dx+(t%74===0?6.5:-6.5),cz+t,hash(t,dx));treeN++;}}); // 追加: 南北の街路樹
+  EW.forEach(dz=>{if(dz===0)return;for(let t=-259;t<=259;t+=41){if(NS.some(dx=>Math.abs(t-dx)<17))continue;if(hash(t,dz)<0.35)continue;if(treeN>=64)return;plantTree(cx+t,cz+dz+(t%82===0?6.5:-6.5),hash(dz,t));treeN++;}}); // 追加: 東西の街路樹（高速の下の通りは除く）
+} // 追加: 街並みバリエーションここまで
+try{cityVariety3100();}catch(e){} // 追加: 街並みを増やす
+// ======== 追加: v31.0 ここまで ========
 applyQual();go('main');layout();requestAnimationFrame(loop);
 setTimeout(netAutoRejoin,1200); // 追加: オンライン切替でのリロードなら部屋へ自動で戻る
 })();
