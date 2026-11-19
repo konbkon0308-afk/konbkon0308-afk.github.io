@@ -408,6 +408,7 @@ const ROUTES=[
 ];
 ROUTES.push({n:'🌆トラングラサーキット・にぎわいの街 (集合広場あり)',R:390,m0:2.1,m1:5.6,mh:45,hs:1.2,bs:1.1,cw:105,circuit:false,ctype:'megacity',lively:true}); // 追加: 街マップを1つ追加する（RTが決まる前に追加して、選んだときに正しく読み込まれるようにする）
 ROUTES.push({n:'🏁 セクショナルファンクション (複合テクニカルサーキット)',R:370,m0:1.4,m1:4.2,mh:0,hs:1.25,bs:1.15,cw:100,circuit:true,ctype:'sectional'}); // 追加: 新サーキット「セクショナルファンクション」を追加する（RTが決まる前に追加する）
+ROUTES.push({n:'ミュージアムパークR (遊園地コース・坂とジャンプ台)',R:330,m0:1.8,m1:5.2,mh:55,hs:1.3,bs:1.2,cw:115,circuit:false,ctype:'funpark'}); // 追加: 新コース「ミュージアムパークR」を追加する（RTが決まる前に追加する）
 const RT=ROUTES[SET.route]||ROUTES[0];
 document.title='R sters pec 01'; // 追加: ブラウザのタブのタイトルも新しい名前にする
 ROUTES[0].n='🌆弐鳳グランドサーキット・交差点＆高速・PA網 (全9店舗巡り)'; // 追加: コース名を変える
@@ -5981,7 +5982,7 @@ const _ped2800=pedStep; // 追加: 今の歩行者処理を覚える
 pedStep=function(dt){const r=_ped2800(dt);custStep2800();return r;}; // 追加: カスタムレースの見張りを足す
 const achvPanel2800=document.createElement('div');achvPanel2800.id='achvPanel2800';achvPanel2800.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:95;display:none;overflow:auto;padding:16px;';document.body.appendChild(achvPanel2800); // 追加: 実績パネルを作る
 function renderAchv2800(){achvPanel2800.innerHTML='<div style="max-width:560px;margin:0 auto;background:#14100a;border:1px solid #c9a227;border-radius:14px;padding:16px;color:#f5eeda"><h2>🏆 実績（'+ACHV2800.filter(a=>SET.achv[a.id]).length+'/'+ACHV2800.length+'）</h2>'+ACHV2800.map(a=>{const un=!!SET.achv[a.id];const pr=a.prog?a.prog():null;return '<div style="border:1px solid #3a3226;border-radius:10px;padding:8px 10px;margin:6px 0;'+(un?'':'opacity:.65')+'">'+(un?'✅':'🔒')+' <b>'+a.t+'</b>　<span style="font-size:12px">'+a.d+'</span>'+(pr?' <span style="color:#c9a227;font-size:12px">'+pr[0]+'/'+pr[1]+'</span>':'')+'<br><span style="font-size:12px;color:#9be15d">報酬: '+a.rwTxt+'</span></div>';}).join('')+'<button class="btn" data-goto-prof="1" style="border-color:#38bdf8;color:#38bdf8;width:100%;margin-bottom:8px">👤 プロフィール・称号・フレンドはこちら</button><br><button class="btn" data-achv-close="1">閉じる</button></div>';} // 追加: 実績パネルを描く
-function yarikomiBar2800(){if(state!=='menu')return;const p=document.getElementById('panelSingle');if(!p)return;let bar=document.getElementById('yarikomiBar2800');if(!bar){bar=document.createElement('div');bar.id='yarikomiBar2800';p.insertBefore(bar,p.firstChild);}const li=levelOf2800(SET.xp);const achvN=ACHV2800.filter(a=>SET.achv[a.id]).length;const h='<div style="font-size:13px;margin-bottom:6px">'+((SET.profile&&SET.profile.icon)||'🏎')+' Lv.<b>'+li.lv+'</b> '+levelTitle2800(li.lv)+(equippedTitleText2900()?' 『'+equippedTitleText2900()+'』':'')+'　XP '+li.rest+'/'+li.need+'</div><button class="btn gold" data-custopen="1" style="width:100%;margin-bottom:8px">🏁 カスタムレース</button><button class="btn gold" data-achv-open="1" style="width:100%;font-size:17px;padding:13px;margin-bottom:8px">🏆 実績を確認する（'+achvN+'/'+ACHV2800.length+'）</button><button class="btn" data-prof-open="1" style="width:100%;font-size:17px;padding:13px;border:2px solid #38bdf8;color:#38bdf8">👤 プロフィール・称号・フレンド</button>';if(bar._h!==h){bar._h=h;bar.innerHTML=h;}} // 追加: 実績とプロフィールを大きな別ボタンで出す
+function yarikomiBar2800(){if(state!=='menu')return;const p=document.getElementById('panelSingle');if(!p)return;let bar=document.getElementById('yarikomiBar2800');if(!bar){bar=document.createElement('div');bar.id='yarikomiBar2800';p.insertBefore(bar,p.firstChild);}const li=levelOf2800(SET.xp);const achvN=ACHV2800.filter(a=>SET.achv[a.id]).length;const h='<div style="font-size:13px;margin-bottom:6px">Lv.<b>'+li.lv+'</b> '+stripEmoji3300(levelTitle2800(li.lv))+(equippedTitleText2900()?' 『'+stripEmoji3300(equippedTitleText2900())+'』':'')+'　XP '+li.rest+'/'+li.need+'</div><button class="btn gold" data-custopen="1" style="width:100%;margin-bottom:8px">カスタムレース</button><button class="btn gold" data-achv-open="1" style="width:100%;font-size:17px;padding:13px;margin-bottom:8px">実績を確認する（'+achvN+'/'+ACHV2800.length+'）</button><button class="btn" data-prof-open="1" style="width:100%;font-size:17px;padding:13px;border:2px solid #38bdf8;color:#38bdf8">プロフィール・称号・フレンド</button>';if(bar._h!==h){bar._h=h;bar.innerHTML=h;}} // 追加: 実績とプロフィールを大きな別ボタンで出す
 const _mes2800=menuExtraStep; // 追加: 今のメニュー追加処理を覚える
 menuExtraStep=function(){const r=_mes2800();try{yarikomiBar2800();}catch(e){}return r;}; // 追加: やり込みバーを足す
 function custCfgHTML(k){const cc=SET.custCfg;let h='<h2>🏁 カスタムレース</h2>';h+='<div class="row">周回数</div><div class="chips">'+[1,2,3,5,10].map(n=>'<button class="chip '+(cc.laps===n?'on':'')+'" data-cust-laps="'+n+'">'+n+'周</button>').join('')+'</div>';h+='<div class="row">台数（AI敵車）</div><div class="chips">'+[4,8,12,16,20,24].map(n=>'<button class="chip '+(cc.grid===n?'on':'')+'" data-cust-grid="'+n+'">'+n+'台</button>').join('')+'</div>';h+='<div class="row">出場車（相手の車）</div><div class="chips">'+[['same','🎯 同格'],['kei','🚐 軽自動車だけ'],['sport','🏎 スポーツカー'],['super','🚀 スーパーカー'],['gt','🔥 GT/GT500'],['random','🎲 ランダム']].map(c=>'<button class="chip '+(cc.cls===c[0]?'on':'')+'" data-cust-cls="'+c[0]+'">'+c[1]+'</button>').join('')+'</div>';h+='<div class="row">コース（レース系は全部OK）</div><div class="chips">'+ROUTES.map((r,i)=>'<button class="chip '+(SET.route===i?'on':'')+'" data-cust-route="'+i+'">'+r.n+'</button>').join('')+'</div>';h+=ch('AI難易度',['初級','中級','上級 (プロ)'],SET.aiDiff,'aiDiff',k);h+='<button class="btn gold" data-custstart="1">🏁 カスタムレース開始</button> <button class="btn" data-custback="1">← もどる</button>';return h;} // 追加: カスタムレース設定画面を作る
@@ -6344,56 +6345,57 @@ if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0){window.a
 // ======== 追加: v32.0 ホーム画面（メニューを分かりやすく） ========
 try{achvPanel2800.style.zIndex='300';profilePanel2900.style.zIndex='301';}catch(e){} // 追加: 実績とプロフィールの画面をホーム画面より上に
 let homeOpen3200=true,homeView3200='title'; // 追加: ホーム画面の開閉と画面の種類
-const homeSel3200={freeRoute:(SET.route===7?7:0),freeMode:'free',raceRoute:([0,1,2,3,4,5,6,8].includes(SET.route)?SET.route:0),raceMode:'race'}; // 追加: ホーム画面での選択
+const homeSel3200={freeRoute:(SET.route===9?9:(SET.route===7?7:0)),freeMode:'free',raceRoute:([0,1,2,3,4,5,6,8].includes(SET.route)?SET.route:0),raceMode:'race'}; // 追加: ホーム画面での選択
 const homeMenu3200=document.createElement('div');homeMenu3200.id='homeMenu3200'; // 追加: ホーム画面を作る
 homeMenu3200.style.cssText='position:fixed;inset:0;background:linear-gradient(160deg,rgba(5,8,12,.97),rgba(10,16,24,.95));z-index:250;display:none;overflow:auto;padding:18px 14px 30px;'; // 追加: ホーム画面の見た目
 document.body.appendChild(homeMenu3200); // 追加: ホーム画面を置く
 function homePartyHTML3200(){ // 追加: パーティ表示（自分と相手の名前・称号）を作る
   const li=levelOf2800(SET.xp);const myT=equippedTitleText2900(); // 追加: 自分の情報
-  let h='<div style="border:1px solid #2b3a4a;border-radius:12px;padding:10px 12px;margin:10px 0;background:rgba(255,255,255,.03)"><div style="font-size:13px;color:#9fb4c8;margin-bottom:8px">👥 パーティ</div><div style="display:flex;gap:8px;flex-wrap:wrap">'; // 追加: パーティの枠
-  h+='<div style="flex:1;min-width:140px;border:1px solid #c9a227;border-radius:10px;padding:8px 10px"><span style="font-size:22px">'+esc2900(SET.profile.icon||'🏎')+'</span> <b>'+esc2900(SET.names[0]||'プレイヤー')+'</b>'+(myT?'<br><span style="color:#ffd700;font-size:12px">『'+esc2900(myT)+'』</span>':'')+'<br><span style="font-size:12px;color:#9fb4c8">Lv.'+li.lv+' '+levelTitle2800(li.lv)+'</span></div>'; // 追加: 自分のカード
-  if(SET.netMode&&typeof netRemoteProfile2721!=='undefined'&&netRemoteProfile2721){const rp=netRemoteProfile2721;h+='<div style="flex:1;min-width:140px;border:1px solid #38bdf8;border-radius:10px;padding:8px 10px"><span style="font-size:22px">'+esc2900(rp.icon||'🏎')+'</span> <b>'+esc2900(rp.name||'相手')+'</b>'+(rp.title?'<br><span style="color:#ffd700;font-size:12px">『'+esc2900(rp.title)+'』</span>':'')+'<br><span style="font-size:12px;color:#9fb4c8">Lv.'+(rp.lv||1)+(rp.crew?'　'+esc2900(rp.crewIcon||'🏁')+' '+esc2900(rp.crew):'')+'</span></div>';} // 追加: 相手のカード（名前と称号）
+  const chip=(n,c)=>'<span style="display:inline-flex;width:32px;height:32px;border-radius:50%;background:'+c+';color:#10131a;font-weight:900;align-items:center;justify-content:center;font-size:15px;vertical-align:middle">'+esc2900(String(n||'P').slice(0,1))+'</span>'; // 追加: 名前の頭文字アバター
+  let h='<div style="border:1px solid #2b3a4a;border-radius:12px;padding:10px 12px;margin:10px 0;background:rgba(255,255,255,.03)"><div style="font-size:11px;letter-spacing:3px;color:#9fb4c8;margin-bottom:8px">PARTY</div><div style="display:flex;gap:8px;flex-wrap:wrap">'; // 追加: パーティの枠
+  h+='<div style="flex:1;min-width:140px;border:1px solid #c9a227;border-radius:10px;padding:8px 10px">'+chip(SET.names[0],'linear-gradient(135deg,#c9a227,#ffd700)')+' <b>'+esc2900(SET.names[0]||'プレイヤー')+'</b>'+(myT?'<br><span style="color:#ffd700;font-size:12px">『'+esc2900(stripEmoji3300(myT))+'』</span>':'')+'<br><span style="font-size:12px;color:#9fb4c8">Lv.'+li.lv+' '+esc2900(stripEmoji3300(levelTitle2800(li.lv)))+'</span></div>'; // 追加: 自分のカード
+  if(SET.netMode&&typeof netRemoteProfile2721!=='undefined'&&netRemoteProfile2721){const rp=netRemoteProfile2721;h+='<div style="flex:1;min-width:140px;border:1px solid #38bdf8;border-radius:10px;padding:8px 10px">'+chip(rp.name,'linear-gradient(135deg,#38bdf8,#7dd3fc)')+' <b>'+esc2900(rp.name||'相手')+'</b>'+(rp.title?'<br><span style="color:#ffd700;font-size:12px">『'+esc2900(stripEmoji3300(rp.title))+'』</span>':'')+'<br><span style="font-size:12px;color:#9fb4c8">Lv.'+(rp.lv||1)+(rp.crew?'<br>'+esc2900(rp.crew):'')+'</span></div>';} // 追加: 相手のカード（名前と称号）
   else if(SET.netMode){h+='<div style="flex:1;min-width:140px;border:1px dashed #3a4a5a;border-radius:10px;padding:8px 10px;color:#9fb4c8;font-size:13px">相手の情報を取得中…</div>';} // 追加: 接続中の表示
   else{h+='<div style="flex:1;min-width:140px;border:1px dashed #3a4a5a;border-radius:10px;padding:8px 10px;color:#9fb4c8;font-size:13px">オンラインに参加すると、ここに相手の名前と称号が出るよ</div>';} // 追加: 未参加の表示
   h+='</div>'; // 追加: カードここまで
-  if(SET.netMode){h+='<div style="margin-top:8px;font-size:13px">部屋コード: <b>'+(SET.roomCode||'----')+'</b>　<button class="btn" data-netleave="1">🔌 切断</button></div>';} // 追加: 部屋コードと切断
-  else{h+='<button class="btn" data-home-net="1" style="width:100%;margin-top:8px;border-color:#38bdf8;color:#38bdf8">🌐 オンラインで遊ぶ（部屋を作る・参加する）</button>';} // 追加: オンライン開始ボタン
+  if(SET.netMode){h+='<div style="margin-top:8px;font-size:13px">部屋コード: <b>'+(SET.roomCode||'----')+'</b>　<button class="btn" data-netleave="1">切断</button></div>';} // 追加: 部屋コードと切断
+  else{h+='<button class="btn" data-home-net="1" style="width:100%;margin-top:8px;border-color:#38bdf8;color:#38bdf8">オンラインで遊ぶ（部屋を作る・参加する）</button>';} // 追加: オンライン開始ボタン
   return h+'</div>'; // 追加: パーティ表示ここまで
 } // 追加: パーティ表示の関数ここまで
 function renderHome3200(){ // 追加: ホーム画面を描く
   const li=levelOf2800(SET.xp);let h='<div style="max-width:560px;margin:0 auto;color:#e8eef4">'; // 追加: 土台
   if(homeView3200==='title'){ // 追加: タイトル画面
-    h+='<div style="text-align:center;margin:14px 0 4px"><div style="font-family:Orbitron,sans-serif;font-size:34px;font-weight:900;color:#ffd700;letter-spacing:1px">R sters pec 01</div><div style="font-size:12px;color:#9fb4c8">峠ドリフト & オープンワールド都市</div></div>'; // 追加: ロゴ
-    h+='<div style="text-align:center;font-size:13px;color:#c8d4e0">'+esc2900(SET.profile.icon||'🏎')+' <b>'+esc2900(SET.names[0]||'プレイヤー')+'</b>'+(equippedTitleText2900()?' <span style="color:#ffd700">『'+esc2900(equippedTitleText2900())+'』</span>':'')+'　Lv.'+li.lv+'　💰 ¥'+(SET.money[0]||0).toLocaleString()+'　🚗 '+(SET.ownedCars[0]||[]).length+'台</div>'; // 追加: 自分の情報
+    h+='<div style="text-align:center;margin:16px 0 6px"><div style="display:inline-flex;align-items:center;gap:12px"><span style="display:inline-flex;width:54px;height:54px;border:3px solid #c9a227;border-radius:50%;align-items:center;justify-content:center;font-family:Orbitron,sans-serif;font-weight:900;font-size:27px;color:#ffd700">R</span><span style="font-family:Orbitron,sans-serif;font-size:29px;font-weight:900;letter-spacing:2px;color:#f5eeda">sters pec <span style="color:#ffd700">01</span></span></div><div style="margin:12px auto 0;width:190px;height:6px;background:repeating-linear-gradient(90deg,#e8e8e8 0 12px,#14161c 12px 24px)"></div><div style="font-size:11px;color:#9fb4c8;letter-spacing:3px;margin-top:9px">TOUGE DRIFT &amp; OPEN WORLD CITY</div></div>'; // 追加: スタイリッシュなロゴ
+    h+='<div style="text-align:center;font-size:13px;color:#c8d4e0"><b>'+esc2900(SET.names[0]||'プレイヤー')+'</b>'+(equippedTitleText2900()?' <span style="color:#ffd700">『'+esc2900(stripEmoji3300(equippedTitleText2900()))+'』</span>':'')+'　Lv.'+li.lv+'　¥'+(SET.money[0]||0).toLocaleString()+'　所持 '+(SET.ownedCars[0]||[]).length+'台</div>'; // 追加: 自分の情報
     h+=homePartyHTML3200(); // 追加: パーティ
     h+='<button class="btn gold" data-home-view="play" style="width:100%;font-size:22px;padding:16px;margin:8px 0">▶ プレイ</button>'; // 追加: プレイボタン
     h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0">'
-      +'<button class="btn gold" data-achv-open="1">🏆 実績</button><button class="btn" data-prof-open="1" style="border-color:#38bdf8;color:#38bdf8">👤 プロフィール</button><button class="btn" data-home-act="mission">🎯 ミッション</button>'
-      +'<button class="btn" data-home-act="collection">📚 車図鑑</button><button class="btn" data-home-act="gacha">🎰 ガチャ</button><button class="btn" data-home-act="gamble">🎲 カジノ</button>'
-      +'<button class="btn" data-home-act="job">💼 バイト</button><button class="btn" data-home-act="company">🏭 会社</button><button class="btn" data-home-act="photos">📷 写真掲示板</button>'
-      +'<button class="btn" data-home-act="settings">⚙️ 設定</button><button class="btn" data-home-act="custrace">🏁 カスタムレース</button><button class="btn" data-home-act="garage">🚗 ガレージ(店)</button>'
+      +'<button class="btn gold" data-achv-open="1">実績</button><button class="btn" data-prof-open="1" style="border-color:#38bdf8;color:#38bdf8">プロフィール</button><button class="btn" data-home-act="mission">ミッション</button>'
+      +'<button class="btn" data-home-act="collection">車図鑑</button><button class="btn" data-home-act="gacha">ガチャ</button><button class="btn" data-home-act="gamble">カジノ</button>'
+      +'<button class="btn" data-home-act="job">バイト</button><button class="btn" data-home-act="company">会社</button><button class="btn" data-home-act="photos">写真掲示板</button>'
+      +'<button class="btn" data-home-act="settings">設定</button><button class="btn" data-home-act="custrace">カスタムレース</button><button class="btn" data-home-act="garage">ガレージ（店）</button>'
       +'</div>'; // 追加: その他のショートカット
-    h+='<button class="btn" data-home-close="1" style="width:100%;margin-top:6px">✕ 閉じる</button><div style="text-align:center;font-size:11px;color:#7d8ea0;margin-top:4px">閉じると、いつものメニュー画面になるよ</div>'; // 追加: 閉じるボタン
+    h+='<button class="btn" data-home-close="1" style="width:100%;margin-top:6px">× 閉じる</button><div style="text-align:center;font-size:11px;color:#7d8ea0;margin-top:4px">閉じると、いつものメニュー画面になるよ</div>'; // 追加: 閉じるボタン
   }else if(homeView3200==='play'){ // 追加: プレイ選択
-    h+='<h2 style="color:#ffd700">▶ プレイ</h2>'
-      +'<button class="btn gold" data-home-view="free" style="width:100%;font-size:20px;padding:18px;margin:8px 0">🌆 フリーラン<div style="font-size:12px;font-weight:normal">街を自由に走る（逃走・追跡もここ）</div></button>'
-      +'<button class="btn gold" data-home-view="race" style="width:100%;font-size:20px;padding:18px;margin:8px 0">🏁 レースモード<div style="font-size:12px;font-weight:normal">サーキットでレース・タイムアタック・GT500</div></button>'
+    h+='<div style="font-size:11px;letter-spacing:3px;color:#9fb4c8;margin-top:10px">PLAY</div><h2 style="color:#ffd700;margin:4px 0 8px">プレイ</h2>'
+      +'<button class="btn gold" data-home-view="free" style="width:100%;font-size:20px;padding:18px;margin:8px 0">フリーラン<div style="font-size:12px;font-weight:normal">街と遊園地を自由に走る（逃走・追跡もここ）</div></button>'
+      +'<button class="btn gold" data-home-view="race" style="width:100%;font-size:20px;padding:18px;margin:8px 0">レースモード<div style="font-size:12px;font-weight:normal">サーキットでレース・タイムアタック・GT500</div></button>'
       +'<button class="btn" data-home-back="1" style="width:100%;margin-top:10px">← もどる</button>'; // 追加: 2つの大きな入口
-  }else if(homeView3200==='free'){ // 追加: フリーラン選択（街だけ）
-    h+='<h2 style="color:#ffd700">🌆 フリーラン</h2><div style="font-size:13px;color:#9fb4c8;margin-bottom:6px">コース（街のマップ）</div><div style="display:grid;gap:8px">'
-      +[0,7].map(i=>'<button class="btn '+(homeSel3200.freeRoute===i?'gold':'')+'" data-home-freeroute="'+i+'" style="text-align:left;padding:12px">'+ROUTES[i].n+'</button>').join('')+'</div>'; // 追加: 街コース2つ
+  }else if(homeView3200==='free'){ // 追加: フリーラン選択（街と遊園地）
+    h+='<div style="font-size:11px;letter-spacing:3px;color:#9fb4c8;margin-top:10px">FREE RUN</div><h2 style="color:#ffd700;margin:4px 0 8px">フリーラン</h2><div style="font-size:13px;color:#9fb4c8;margin-bottom:6px">コース</div><div style="display:grid;gap:8px">'
+      +[0,7,9].map(i=>'<button class="btn '+(homeSel3200.freeRoute===i?'gold':'')+'" data-home-freeroute="'+i+'" style="text-align:left;padding:12px">'+esc2900(stripEmoji3300(ROUTES[i].n))+(i===9?'<div style="font-size:11px;font-weight:normal">遊園地コース：坂とジャンプ台、的当て・最高速・ストラックアウトのミニゲームつき</div>':'')+'</button>').join('')+'</div>'; // 追加: フリーのコース
     h+='<div style="font-size:13px;color:#9fb4c8;margin:12px 0 6px">モード</div><div style="display:flex;gap:8px;flex-wrap:wrap">'
-      +[['free','🚗 フリー走行'],['chase','🚨 逃走'],['police','🚓 追跡']].map(m2=>'<button class="btn '+(homeSel3200.freeMode===m2[0]?'gold':'')+'" data-home-freemode="'+m2[0]+'">'+m2[1]+'</button>').join('')+'</div>'; // 追加: フリー系モード
+      +[['free','フリー走行'],['chase','逃走'],['police','追跡']].map(m2=>'<button class="btn '+(homeSel3200.freeMode===m2[0]?'gold':'')+'" data-home-freemode="'+m2[0]+'">'+m2[1]+'</button>').join('')+'</div>'; // 追加: フリー系モード
     h+='<button class="btn gold" data-home-start="free" style="width:100%;font-size:20px;padding:15px;margin-top:16px">▶ スタート</button><button class="btn" data-home-back="1" style="width:100%;margin-top:8px">← もどる</button>'; // 追加: 開始と戻る
   }else if(homeView3200==='race'){ // 追加: レース選択（サーキット）
-    h+='<h2 style="color:#ffd700">🏁 レースモード</h2><div style="font-size:13px;color:#9fb4c8;margin-bottom:6px">コース（サーキット）</div><div style="display:grid;gap:8px">'
-      +[0,1,2,3,4,5,6,8].map(i=>'<button class="btn '+(homeSel3200.raceRoute===i?'gold':'')+'" data-home-raceroute="'+i+'" style="text-align:left;padding:12px">'+ROUTES[i].n+'</button>').join('')+'</div>'; // 追加: サーキットコース
+    h+='<div style="font-size:11px;letter-spacing:3px;color:#9fb4c8;margin-top:10px">RACE</div><h2 style="color:#ffd700;margin:4px 0 8px">レースモード</h2><div style="font-size:13px;color:#9fb4c8;margin-bottom:6px">コース（サーキット）</div><div style="display:grid;gap:8px">'
+      +[0,1,2,3,4,5,6,8].map(i=>'<button class="btn '+(homeSel3200.raceRoute===i?'gold':'')+'" data-home-raceroute="'+i+'" style="text-align:left;padding:12px">'+esc2900(stripEmoji3300(ROUTES[i].n))+'</button>').join('')+'</div>'; // 追加: サーキットコース
     h+='<div style="font-size:13px;color:#9fb4c8;margin:12px 0 6px">モード</div><div style="display:flex;gap:8px;flex-wrap:wrap">'
-      +[['race','🏁 レース'],['ta','⏱ タイムアタック'],['gt500','🔥 GT500']].map(m2=>'<button class="btn '+(homeSel3200.raceMode===m2[0]?'gold':'')+'" data-home-racemode="'+m2[0]+'">'+m2[1]+'</button>').join('')+'</div>'
+      +[['race','レース'],['ta','タイムアタック'],['gt500','GT500']].map(m2=>'<button class="btn '+(homeSel3200.raceMode===m2[0]?'gold':'')+'" data-home-racemode="'+m2[0]+'">'+m2[1]+'</button>').join('')+'</div>'
       +(homeSel3200.raceMode==='gt500'?'<div style="font-size:12px;color:#9fb4c8;margin-top:4px">GT500はファンダムGT サーキット専用だよ</div>':''); // 追加: レース系モード
     h+='<div style="font-size:13px;color:#9fb4c8;margin:12px 0 6px">AI難易度</div><div style="display:flex;gap:8px">'
       +['初級','中級','上級'].map((t2,i)=>'<button class="btn '+(SET.aiDiff===i?'gold':'')+'" data-home-aidiff="'+i+'">'+t2+'</button>').join('')+'</div>'; // 追加: 難易度
-    h+='<button class="btn gold" data-home-start="race" style="width:100%;font-size:20px;padding:15px;margin-top:16px">▶ スタート</button><button class="btn" data-home-act="custrace" style="width:100%;margin-top:8px">🏁 カスタムレース（周回数・台数・出場車）</button><button class="btn" data-home-back="1" style="width:100%;margin-top:8px">← もどる</button>'; // 追加: 開始と戻る
+    h+='<button class="btn gold" data-home-start="race" style="width:100%;font-size:20px;padding:15px;margin-top:16px">▶ スタート</button><button class="btn" data-home-act="custrace" style="width:100%;margin-top:8px">カスタムレース（周回数・台数・出場車）</button><button class="btn" data-home-back="1" style="width:100%;margin-top:8px">← もどる</button>'; // 追加: 開始と戻る
   } // 追加: 画面の種類ここまで
   homeMenu3200.innerHTML=h+'</div>'; // 追加: 描き終わり
 } // 追加: ホーム画面を描く関数ここまで
@@ -6444,6 +6446,107 @@ setInterval(()=>{ // 追加: ホーム画面の表示を管理する
 },1200); // 追加: 表示管理ここまで
 renderHome3200(); // 追加: 最初の描画
 // ======== 追加: v32.0 ここまで ========
+// ======== 追加: v33.0 エンタメ大アプデ（絵文字なしUI・ミュージアムパークR・ミニゲーム・マスコット・1番マップ作り込み） ========
+function stripEmoji3300(s){return String(s).replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/gu,'').replace(/\s{2,}/g,' ');} // 追加: 絵文字を取り除く
+const _ra3300=renderAchv2800;renderAchv2800=function(){_ra3300();try{achvPanel2800.innerHTML=stripEmoji3300(achvPanel2800.innerHTML);}catch(e){}}; // 追加: 実績画面を絵文字なしに
+const _rp3300=renderProfile2900;renderProfile2900=function(){_rp3300();try{profilePanel2900.innerHTML=stripEmoji3300(profilePanel2900.innerHTML);}catch(e){}}; // 追加: プロフィール画面を絵文字なしに
+const _mmi3300=missionMenuInject;missionMenuInject=function(){const r=_mmi3300();try{const mp=document.getElementById('missionPanel');if(mp)mp.innerHTML=stripEmoji3300(mp.innerHTML);}catch(e){}return r;}; // 追加: ミッション表示を絵文字なしに
+const _ar3300=allowedRoutes2800;allowedRoutes2800=function(m){const r=_ar3300(m);if((m==='free'||m==='chase'||m==='police')&&r.indexOf(9)<0)return r.concat([9]);return r;}; // 追加: フリーラン系にミュージアムパークRを許可
+if(SET.funBest===undefined)SET.funBest=0; // 追加: 最高速ベストの初期値
+const FUN3300={on:(SET.route===9),rings:[],ringN:0,panels:[],panelN:0,pads:[],hopT:-1,hopDur:0.75,hopH:0,zoneIn:false,zoneMax:0,wheel:null,gondolas:[],balloons:[],mascot:null,mascotY:0,armR:null,bubbleCv:null,bubbleTex:null,bubbleTimer:0,hud:null,tips:['ピコだよ！ようこそ！','ジャンプ台で跳んでみて','金色の輪が的当てだよ','的を全部倒してみて','最高速に挑戦しよう','観覧車が目印だよ']}; // 追加: パークの状態
+function parkPt3300(i,lat){const p=P[i];const len=Math.hypot(p.lx,p.lz)||1;return{x:p.x+p.lx/len*lat,z:p.z+p.lz/len*lat,y:p.y,h:Math.atan2(p.tx,p.tz)};} // 追加: コース沿いの位置を出す
+function stripeTexture3300(){const cv=document.createElement('canvas');cv.width=64;cv.height=64;const c=cv.getContext('2d');c.fillStyle='#facc15';c.fillRect(0,0,64,64);c.strokeStyle='#111827';c.lineWidth=10;for(let k=-2;k<4;k++){c.beginPath();c.moveTo(k*24-8,72);c.lineTo(k*24+40,-8);c.stroke();}return new THREE.CanvasTexture(cv);} // 追加: ジャンプ台の縞模様
+function numTexture3300(n){const cv=document.createElement('canvas');cv.width=96;cv.height=96;const c=cv.getContext('2d');c.fillStyle='#f8fafc';c.fillRect(0,0,96,96);c.strokeStyle=['#ef4444','#f59e0b','#22c55e','#38bdf8','#a855f7'][(n-1)%5];c.lineWidth=8;c.strokeRect(4,4,88,88);c.fillStyle='#111827';c.font='bold 56px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(String(n),48,52);return new THREE.CanvasTexture(cv);} // 追加: 的パネルの数字
+function setBubble3300(txt){const cv=FUN3300.bubbleCv;if(!cv)return;const c=cv.getContext('2d');c.clearRect(0,0,256,96);c.fillStyle='rgba(255,255,255,0.96)';c.fillRect(4,8,248,72);c.strokeStyle='#c9a227';c.lineWidth=4;c.strokeRect(4,8,248,72);c.fillStyle='#a16207';c.beginPath();c.moveTo(108,80);c.lineTo(132,80);c.lineTo(120,94);c.closePath();c.fill();c.fillStyle='#10131a';c.font='bold '+(txt.length>11?19:25)+'px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(txt,128,45);FUN3300.bubbleTex.needsUpdate=true;FUN3300.bubbleTimer=4;} // 追加: マスコットの吹き出しを変える
+function buildFunPark3300(){ // 追加: ミュージアムパークRの飾りと遊具を作る
+  if(SET.route!==9)return; // 追加: パークコースだけ
+  const g=new THREE.Group();g.name='funpark3300';scene.add(g); // 追加: パークのグループ
+  const cols=[0xef4444,0xf59e0b,0x22c55e,0x38bdf8,0xa855f7,0xec4899]; // 追加: カラフルな色
+  // 観覧車
+  const wb=parkPt3300(500,-55);const wgy=groundYAt(wb.x,wb.z); // 追加: 観覧車の場所
+  const wg=new THREE.Group();wg.position.set(wb.x,wgy,wb.z);wg.rotation.y=wb.h;wg.name='funWheel3300';g.add(wg); // 追加: 観覧車の土台
+  [-3.4,3.4].forEach(zo=>{const leg=new THREE.Mesh(new THREE.BoxGeometry(0.9,15,0.9),LM(0xe5e7eb));leg.position.set(0,7.5,zo);leg.rotation.x=zo>0?-0.22:0.22;wg.add(leg);}); // 追加: 観覧車の脚
+  const spinner=new THREE.Group();spinner.position.set(0,15.5,0);wg.add(spinner); // 追加: 回る部分
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(12.5,0.55,10,36),LM(0xec4899));spinner.add(rim); // 追加: 輪
+  for(let k=0;k<8;k++){const a=k/8*Math.PI*2;const sp=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.18,25,6),LM(0xf8fafc));sp.rotation.z=a+Math.PI/2;sp.rotation.y=Math.PI/2;spinner.add(sp);} // 追加: スポーク（近似）
+  for(let k=0;k<8;k++){const a=k/8*Math.PI*2;const gd=new THREE.Group();gd.position.set(Math.cos(a)*12.5,Math.sin(a)*12.5,0);const box=new THREE.Mesh(new THREE.BoxGeometry(2.6,2,2.6),LM(cols[k%6]));box.position.y=-1.6;gd.add(box);spinner.add(gd);FUN3300.gondolas.push(gd);} // 追加: ゴンドラ
+  FUN3300.wheel=spinner; // 追加: 回転用に覚える
+  // 虹色アーチと入口看板
+  [0,200,400,600,800,1000,1200,1400].forEach((ci,k)=>{const pt=parkPt3300(ci,0);const arch=new THREE.Mesh(new THREE.TorusGeometry(10.5,0.45,8,22,Math.PI),LM(cols[k%6]));arch.position.set(pt.x,pt.y+0.15,pt.z);arch.rotation.y=pt.h;g.add(arch);}); // 追加: アーチ
+  const ep=parkPt3300(18,0);const sign=new THREE.Mesh(new THREE.PlaneGeometry(13,2.4),new THREE.MeshBasicMaterial({map:signTexture3100('ミュージアムパークR','#111827','#ffd700'),side:THREE.DoubleSide}));sign.position.set(ep.x,ep.y+8.6,ep.z);sign.rotation.y=ep.h;g.add(sign); // 追加: 入口の看板
+  [-7,7].forEach(lat=>{const pp2=parkPt3300(18,lat);const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,8.6,8),LM(0x374151));pole.position.set(pp2.x,pp2.y+4.3,pp2.z);g.add(pole);}); // 追加: 看板の柱
+  // 風船
+  [150,450,750,1050,1350].forEach((ci,k)=>{const pt=parkPt3300(ci,k%2?17:-17);const gy=groundYAt(pt.x,pt.z);const bg=new THREE.Group();bg.position.set(pt.x,gy,pt.z);for(let b=0;b<3;b++){const s=new THREE.Mesh(new THREE.SphereGeometry(1.1+((b+k)%3)*0.35,10,10),LM(cols[(k+b)%6]));s.position.set((b-1)*1.6,6.5+b*1.1,(b%2)*1.2);bg.add(s);const st=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,6.4,4),LM(0x9ca3af));st.position.set((b-1)*0.8,3.2,(b%2)*0.6);bg.add(st);}bg.userData.y0=gy;g.add(bg);FUN3300.balloons.push(bg);}); // 追加: 風船の束
+  // ジャンプ台
+  const stripe=stripeTexture3300(); // 追加: 縞模様
+  [250,650,1050,1450].forEach(ci=>{const pt=parkPt3300(ci,0);const pg=new THREE.Group();pg.position.set(pt.x,pt.y+0.05,pt.z);pg.rotation.y=pt.h;const base=new THREE.Mesh(new THREE.BoxGeometry(9,0.5,7),new THREE.MeshLambertMaterial({map:stripe}));base.position.y=0.25;pg.add(base);const lip=new THREE.Mesh(new THREE.BoxGeometry(9,0.5,2.6),new THREE.MeshLambertMaterial({map:stripe}));lip.position.set(0,0.85,2.4);lip.rotation.x=-0.35;pg.add(lip);g.add(pg);FUN3300.pads.push({x:pt.x,z:pt.z});}); // 追加: ジャンプ台
+  // 的当てリング
+  [60,120,300,480,660,840,1020,1200,1380,1500].forEach(ci=>{const pt=parkPt3300(ci,0);const ring=new THREE.Mesh(new THREE.TorusGeometry(3.4,0.3,10,24),LM(0xffd700));ring.position.set(pt.x,pt.y+3.6,pt.z);ring.rotation.y=pt.h;g.add(ring);FUN3300.rings.push({x:pt.x,z:pt.z,mesh:ring,hit:false});}); // 追加: 的当ての輪
+  // ストラックアウト（9枚の的）
+  const pb=parkPt3300(40,30);const pgy=groundYAt(pb.x,pb.z); // 追加: 的の場所
+  const frame=new THREE.Mesh(new THREE.BoxGeometry(9.6,0.5,0.6),LM(0x374151));frame.position.set(pb.x,pgy+8.6,pb.z);frame.rotation.y=pb.h;g.add(frame); // 追加: 的の上の梁
+  for(let r=0;r<3;r++)for(let c=0;c<3;c++){const num=r*3+c+1;const lx=(c-1)*2.9,ly=r*2.9;const wx=pb.x+Math.cos(pb.h)*lx,wz=pb.z-Math.sin(pb.h)*lx;const outer=new THREE.Group();outer.position.set(wx,pgy+0.4+ly,wz);outer.rotation.y=pb.h;const pivot=new THREE.Group();outer.add(pivot);const pm=new THREE.Mesh(new THREE.BoxGeometry(2.4,2.4,0.25),new THREE.MeshLambertMaterial({map:numTexture3300(num)}));pm.position.y=1.3;pivot.add(pm);g.add(outer);FUN3300.panels.push({x:wx,z:wz,num:num,down:false,fall:0,pivot:pivot});} // 追加: 的パネル
+  // マスコット「ピコ」
+  const mp=parkPt3300(24,11);const mgy=groundYAt(mp.x,mp.z); // 追加: マスコットの場所
+  const mg=new THREE.Group();mg.position.set(mp.x,mgy,mp.z);mg.rotation.y=mp.h+Math.PI;g.add(mg);FUN3300.mascot=mg;FUN3300.mascotY=mgy; // 追加: マスコット本体
+  const body=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.56,0.9,12),LM(0x14b8a6));body.position.y=0.75;mg.add(body); // 追加: 体
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.52,14,12),LM(0xf8fafc));head.position.y=1.78;mg.add(head); // 追加: 頭
+  [-0.18,0.18].forEach(ex=>{const eye=new THREE.Mesh(new THREE.SphereGeometry(0.065,8,8),LM(0x111827));eye.position.set(ex,1.86,0.46);mg.add(eye);}); // 追加: 目
+  const mouth=new THREE.Mesh(new THREE.BoxGeometry(0.22,0.05,0.03),LM(0x111827));mouth.position.set(0,1.62,0.5);mg.add(mouth); // 追加: 口
+  const ant=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,0.5,6),LM(0x9ca3af));ant.position.y=2.45;mg.add(ant);const antB=new THREE.Mesh(new THREE.SphereGeometry(0.13,8,8),LM(0xffd700));antB.position.y=2.75;mg.add(antB); // 追加: アンテナ
+  const armL=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.62,0.18),LM(0x14b8a6));armL.position.set(-0.58,0.95,0);armL.rotation.z=0.5;mg.add(armL); // 追加: 左腕
+  const armRG=new THREE.Group();armRG.position.set(0.55,1.2,0);const armR=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.66,0.18),LM(0x14b8a6));armR.position.y=0.3;armRG.add(armR);mg.add(armRG);FUN3300.armR=armRG; // 追加: 右腕（振る用）
+  [-0.2,0.2].forEach(lx2=>{const leg=new THREE.Mesh(new THREE.BoxGeometry(0.2,0.34,0.2),LM(0x1f2937));leg.position.set(lx2,0.17,0);mg.add(leg);}); // 追加: 足
+  FUN3300.bubbleCv=document.createElement('canvas');FUN3300.bubbleCv.width=256;FUN3300.bubbleCv.height=96;FUN3300.bubbleTex=new THREE.CanvasTexture(FUN3300.bubbleCv); // 追加: 吹き出しの絵
+  const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:FUN3300.bubbleTex,transparent:true}));spr.scale.set(5.2,1.95,1);spr.position.y=3.6;mg.add(spr);setBubble3300('ピコだよ！ようこそ！'); // 追加: 吹き出し
+  // 人混み（人口密度）
+  const pedCols=[0xef4444,0x3b82f6,0x22c55e,0xf59e0b,0xec4899,0xa855f7,0xf8fafc,0x14b8a6]; // 追加: 服の色
+  for(let k=0;k<36;k++){const ci=60+((k*41)%1440);const lat=(k%2?1:-1)*(13+(k%5));const pt=parkPt3300(ci,lat);const mk=makePed(pedCols[k%pedCols.length]);mk.g.position.set(pt.x,groundYAt(pt.x,pt.z),pt.z);mk.g.visible=true;peds.push({g:mk.g,legL:mk.legL,legR:mk.legR,excl:mk.excl,cx:pt.x,cz:pt.z,ax:1,az:0,range:9,off:0,dir:k%2?1:-1,speed:0.5+((k*7)%10)/14,phase:k*1.3,area:1,state:'walk',t:0,fx:0,fz:0});} // 追加: パークの来場者36人
+  // HUD
+  const hud=document.createElement('div');hud.id='funHud3300';hud.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);background:rgba(8,10,14,.78);border:1px solid #c9a227;color:#f5eeda;border-radius:999px;padding:6px 16px;font-size:13px;z-index:60;display:none;white-space:nowrap;';document.body.appendChild(hud);FUN3300.hud=hud; // 追加: ミニゲームの表示
+} // 追加: パーク作りここまで
+function cityDetail3300(){ // 追加: 1番マップ（弐鳳）を特に作り込む
+  if(SET.route!==0||RT.ctype!=='megacity')return; // 追加: 弐鳳だけ
+  const cg=scene.children.find(o=>o.name==='city');if(!cg)return; // 追加: 街のグループ
+  const cx=cityData.cx,cz=cityData.cz;const Y=0.16; // 追加: 中心と地面
+  const vendCols=[0xdc2626,0x2563eb,0xf8fafc,0x059669]; // 追加: 自販機の色
+  [-110,110].forEach((dx,di)=>{[-165,-45,85,195].forEach((t,ti)=>{const side=(ti%2?7.8:-7.8);const vm=new THREE.Mesh(new THREE.BoxGeometry(1.1,2,0.9),LM(vendCols[(di+ti)%4]));vm.position.set(cx+dx+side,Y+1,cz+t);cg.add(vm);const fr=new THREE.Mesh(new THREE.PlaneGeometry(0.8,1.2),LM(0xbfefff));fr.position.set(cx+dx+side,Y+1.15,cz+t+(side>0?0.47:-0.47));if(side<0)fr.rotation.y=Math.PI;cg.add(fr);});}); // 追加: 自販機
+  for(let k=0;k<10;k++){const bx=cx-220+44*k,bz=cz+(k%2?63.5:-63.5);const seat=new THREE.Mesh(new THREE.BoxGeometry(2.3,0.14,0.62),LM(0x7c4a21));seat.position.set(bx,Y+0.55,bz);cg.add(seat);const back=new THREE.Mesh(new THREE.BoxGeometry(2.3,0.55,0.1),LM(0x7c4a21));back.position.set(bx,Y+0.95,bz+(k%2?-0.28:0.28));cg.add(back);const pl=new THREE.Mesh(new THREE.BoxGeometry(1.7,0.5,0.85),LM(0x5b4632));pl.position.set(bx+3,Y+0.25,bz);cg.add(pl);const bush=new THREE.Mesh(new THREE.IcosahedronGeometry(0.85,0),LM(0x15803d));bush.position.set(bx+3,Y+1,bz);cg.add(bush);} // 追加: ベンチと植木
+  [[0,-55],[0,55]].forEach(bn=>{const bxp=cx+bn[0],bzp=cz+bn[1];[-8.5,8.5].forEach(px=>{const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,6.4,6),LM(0x374151));pole.position.set(bxp+px,Y+3.2,bzp);cg.add(pole);});const bp=new THREE.Mesh(new THREE.PlaneGeometry(15,1.5),new THREE.MeshBasicMaterial({map:signTexture3100('NIHOU GRAND CITY','#111827','#ffd700'),side:THREE.DoubleSide}));bp.position.set(bxp,Y+5.9,bzp);cg.add(bp);}); // 追加: 街の横断幕
+  const pkx=cx-165,pkz=cz-55;const basin=new THREE.Mesh(new THREE.CylinderGeometry(6.2,6.8,0.85,18),LM(0x9ca3af));basin.position.set(pkx,Y+0.42,pkz);cg.add(basin);const water=new THREE.Mesh(new THREE.CylinderGeometry(5.5,5.5,0.16,18),LM(0x38bdf8));water.position.set(pkx,Y+0.9,pkz);cg.add(water);const pil=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.7,2.4,10),LM(0x9ca3af));pil.position.set(pkx,Y+1.9,pkz);cg.add(pil);const orb=new THREE.Mesh(new THREE.SphereGeometry(0.65,10,10),LM(0x7dd3fc));orb.position.set(pkx,Y+3.4,pkz);cg.add(orb); // 追加: 公園の噴水
+  const words=['CAFE','BAR','HOTEL','SHOP','RAMEN','BOOK','PIZZA','GYM'];const wcols=['#ec4899','#38bdf8','#a855f7','#22c55e','#f59e0b','#f8fafc','#ef4444','#14b8a6']; // 追加: ネオン看板
+  cityData.buildings.filter(b=>!b.park).slice(0,8).forEach((b,bi)=>{const sg=new THREE.Mesh(new THREE.PlaneGeometry(7.5,1.7),new THREE.MeshBasicMaterial({map:signTexture3100(words[bi], '#111827', wcols[bi]),side:THREE.DoubleSide}));sg.position.set(b.x,8.5,b.z+b.d/2+0.35);cg.add(sg);}); // 追加: ビルのネオン看板
+  const pedCols2=[0x64748b,0x94a3b8,0xb45309,0x0ea5e9,0xf43f5e,0x84cc16]; // 追加: 服の色
+  for(let k=0;k<16;k++){const dx=[-220,-110,0,110,220][k%5];const px=cx+dx+(k%2?5.6:-5.6),pz=cz-240+((k*67)%480);const mk=makePed(pedCols2[k%pedCols2.length]);mk.g.position.set(px,Y,pz);mk.g.visible=true;peds.push({g:mk.g,legL:mk.legL,legR:mk.legR,excl:mk.excl,cx:px,cz:pz,ax:0,az:1,range:26,off:0,dir:k%2?1:-1,speed:0.7+((k*3)%8)/12,phase:k*0.9,state:'walk',t:0,fx:0,fz:0});} // 追加: 街の通行人+16人
+} // 追加: 1番マップ作り込みここまで
+function funStep3300(dt){ // 追加: パークの動きとミニゲーム
+  try{
+    if(FUN3300.wheel){FUN3300.wheel.rotation.z+=dt*0.3;FUN3300.gondolas.forEach(gd=>{gd.rotation.z=-FUN3300.wheel.rotation.z;});} // 追加: 観覧車を回す
+    if(FUN3300.mascot){const t=performance.now()/1000;FUN3300.mascot.position.y=FUN3300.mascotY+Math.abs(Math.sin(t*2))*0.09;if(FUN3300.armR)FUN3300.armR.rotation.z=-0.5+Math.sin(t*3.2)*0.55;} // 追加: マスコットを動かす
+    FUN3300.balloons.forEach((b,i)=>{b.position.y=b.userData.y0+Math.sin(performance.now()/900+i*1.7)*0.45;}); // 追加: 風船を揺らす
+    if(FUN3300.bubbleTimer>0){FUN3300.bubbleTimer-=dt;if(FUN3300.bubbleTimer<=0&&FUN3300.bubbleCv)setBubble3300(FUN3300.tips[Math.floor(Math.random()*FUN3300.tips.length)]);} // 追加: 吹き出しを切り替える
+    if(FUN3300.hud&&(!FUN3300.on||state!=='game'))FUN3300.hud.style.display='none'; // 追加: HUDを隠す
+    if(!FUN3300.on||state!=='game')return; // 追加: ゲーム中だけ判定
+    const lp=(SET.netMode&&!SET.host)?players[1]:players[0];if(!lp||!lp.S)return; // 追加: 自分の車
+    const spd=Math.hypot(lp.S.u,lp.S.v)*3.6; // 追加: 速度
+    if(FUN3300.hopT>=0)FUN3300.hopT+=dt;if(FUN3300.hopT>FUN3300.hopDur)FUN3300.hopT=-1; // 追加: ジャンプの進行
+    if(SET.mode==='free'){ // 追加: フリーランでミニゲーム
+      if(FUN3300.hopT<0){for(const pd of FUN3300.pads){if(Math.hypot(lp.S.x-pd.x,lp.S.z-pd.z)<6&&spd>35){FUN3300.hopT=0;FUN3300.hopH=Math.min(4.5,1.6+spd/55);setBubble3300('ジャンプ！');break;}}} // 追加: ジャンプ台
+      for(const r of FUN3300.rings){if(r.hit)continue;if(Math.hypot(lp.S.x-r.x,lp.S.z-r.z)<4.8){r.hit=true;r.mesh.material=LM(0x22c55e);FUN3300.ringN++;setBubble3300('的当て ナイス！ '+FUN3300.ringN+'/10');if(FUN3300.ringN>=10){SET.money[0]+=100000;save();showComment('的当てコンプリート！ ¥100,000');setBubble3300('的当て 全部命中！すごい！');setTimeout(()=>{FUN3300.rings.forEach(r2=>{r2.hit=false;r2.mesh.material=LM(0xffd700);});FUN3300.ringN=0;},6000);}}} // 追加: 的当て
+      const inZ=lp.ti>=700&&lp.ti<=900; // 追加: 最高速ゾーン
+      if(inZ&&!FUN3300.zoneIn){FUN3300.zoneIn=true;FUN3300.zoneMax=0;setBubble3300('最高速チャレンジ 開始！');} // 追加: ゾーン入場
+      if(inZ&&spd>FUN3300.zoneMax)FUN3300.zoneMax=spd; // 追加: 計測
+      if(!inZ&&FUN3300.zoneIn){FUN3300.zoneIn=false;const zm=Math.floor(FUN3300.zoneMax);const prize=zm>=300?80000:(zm>=250?30000:(zm>=200?10000:0));if(prize>0)SET.money[0]+=prize;if(zm>(SET.funBest||0)){SET.funBest=zm;setBubble3300('最高速 新記録 '+zm+'km/h！');}else setBubble3300('最高速 '+zm+'km/h');showComment('最高速チャレンジ: '+zm+' km/h'+(prize>0?'　¥'+prize.toLocaleString():''));save();} // 追加: ゾーン結果
+      for(const pn of FUN3300.panels){if(pn.down&&pn.fall<1){pn.fall=Math.min(1,pn.fall+dt*2.6);pn.pivot.rotation.x=-1.35*pn.fall;}if(!pn.down&&Math.hypot(lp.S.x-pn.x,lp.S.z-pn.z)<3.8){pn.down=true;FUN3300.panelN++;setBubble3300('ストライク！ '+pn.num+'番');if(FUN3300.panelN>=9){SET.money[0]+=50000;save();showComment('ストラックアウト達成！ ¥50,000');setBubble3300('全部倒した！やったね！');setTimeout(()=>{FUN3300.panels.forEach(p2=>{p2.down=false;p2.fall=0;p2.pivot.rotation.x=0;});FUN3300.panelN=0;},15000);}}} // 追加: ストラックアウト
+    } // 追加: ミニゲームここまで
+    const hud=FUN3300.hud;if(hud){const show=(state==='game'&&SET.mode==='free');hud.style.display=show?'block':'none';if(show){const s='的当て '+FUN3300.ringN+'/10　|　ストラックアウト '+FUN3300.panelN+'/9　|　最高速ベスト '+(SET.funBest||0)+' km/h';if(hud._s!==s){hud._s=s;hud.textContent=s;}}} // 追加: HUD更新
+  }catch(e){} // 追加: 安全に
+} // 追加: パークの動きここまで
+const _ps3300=pedStep;pedStep=function(dt){const r=_ps3300(dt);funStep3300(dt||0.016);return r;}; // 追加: 毎フレーム処理にパークを足す
+const _vis3300=visuals;visuals=function(pl,p,dt,game){const r=_vis3300.apply(this,arguments);try{if(FUN3300.on&&FUN3300.hopT>=0){const lp=(SET.netMode&&!SET.host)?players[1]:players[0];if(pl===lp){const k=Math.min(1,FUN3300.hopT/FUN3300.hopDur);pl.model.car.position.y+=Math.sin(k*Math.PI)*FUN3300.hopH;pl.model.car.rotation.x-=Math.sin(k*Math.PI*2)*0.1;}}}catch(e){}return r;}; // 追加: ジャンプ中の見た目
+try{buildFunPark3300();}catch(e){} // 追加: パークを作る
+try{cityDetail3300();}catch(e){} // 追加: 1番マップを作り込む
+// ======== 追加: v33.0 ここまで ========
 applyQual();go('main');layout();requestAnimationFrame(loop);
 setTimeout(netAutoRejoin,1200); // 追加: オンライン切替でのリロードなら部屋へ自動で戻る
 })();
