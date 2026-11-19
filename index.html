@@ -6383,7 +6383,7 @@ function renderHome3200(){ // 追加: ホーム画面を描く
       +'<button class="btn" data-home-back="1" style="width:100%;margin-top:10px">← もどる</button>'; // 追加: 2つの大きな入口
   }else if(homeView3200==='free'){ // 追加: フリーラン選択（街と遊園地）
     h+='<div style="font-size:11px;letter-spacing:3px;color:#9fb4c8;margin-top:10px">FREE RUN</div><h2 style="color:#ffd700;margin:4px 0 8px">フリーラン</h2><div style="font-size:13px;color:#9fb4c8;margin-bottom:6px">コース</div><div style="display:grid;gap:8px">'
-      +[0,7,9].map(i=>'<button class="btn '+(homeSel3200.freeRoute===i?'gold':'')+'" data-home-freeroute="'+i+'" style="text-align:left;padding:12px">'+esc2900(stripEmoji3300(ROUTES[i].n))+(i===9?'<div style="font-size:11px;font-weight:normal">遊園地コース：坂とジャンプ台、的当て・最高速・ストラックアウトのミニゲームつき</div>':'')+'</button>').join('')+'</div>'; // 追加: フリーのコース
+      +[0,7,9].map(i=>'<button class="btn '+(homeSel3200.freeRoute===i?'gold':'')+'" data-home-freeroute="'+i+'" style="text-align:left;padding:12px">'+esc2900(stripEmoji3300(ROUTES[i].n))+(i===9?'<div style="font-size:11px;font-weight:normal">遊園地コース：ジャンプ台・的当て・最高速・ストラックアウト・ボウリング・駐車・バッティング・ドリフト・ヒルクライム</div>':'')+'</button>').join('')+'</div>'; // 追加: フリーのコース
     h+='<div style="font-size:13px;color:#9fb4c8;margin:12px 0 6px">モード</div><div style="display:flex;gap:8px;flex-wrap:wrap">'
       +[['free','フリー走行'],['chase','逃走'],['police','追跡']].map(m2=>'<button class="btn '+(homeSel3200.freeMode===m2[0]?'gold':'')+'" data-home-freemode="'+m2[0]+'">'+m2[1]+'</button>').join('')+'</div>'; // 追加: フリー系モード
     h+='<button class="btn gold" data-home-start="free" style="width:100%;font-size:20px;padding:15px;margin-top:16px">▶ スタート</button><button class="btn" data-home-back="1" style="width:100%;margin-top:8px">← もどる</button>'; // 追加: 開始と戻る
@@ -6547,6 +6547,96 @@ const _vis3300=visuals;visuals=function(pl,p,dt,game){const r=_vis3300.apply(thi
 try{buildFunPark3300();}catch(e){} // 追加: パークを作る
 try{cityDetail3300();}catch(e){} // 追加: 1番マップを作り込む
 // ======== 追加: v33.0 ここまで ========
+// ======== 追加: v34.0 ミニゲーム増量（駐車・ボウリング・バッティング・ドリフト・ヒルクライム・風船） ========
+if(SET.funDriftBest===undefined)SET.funDriftBest=0; // 追加: ドリフトチャレンジのベスト
+if(SET.funHillBest===undefined)SET.funHillBest=0; // 追加: ヒルクライムのベスト
+const FUN3400={on:(SET.route===9),spots:[],parkTarget:0,parkHold:0,pins:[],bowlN:0,bowlState:'ready',bowlTimer:0,bat:null,drift:{in:false,best:0},hill:null,pops:[],popN:0,hud:null}; // 追加: 追加ミニゲームの状態
+function angDiff3400(a,b){return Math.atan2(Math.sin(a-b),Math.cos(a-b));} // 追加: 角度の差
+function spotTexture3400(gold){const cv=document.createElement('canvas');cv.width=96;cv.height=192;const c=cv.getContext('2d');c.fillStyle='#2b3440';c.fillRect(0,0,96,192);c.strokeStyle=gold?'#ffd700':'#e5e7eb';c.lineWidth=9;c.strokeRect(5,5,86,182);return new THREE.CanvasTexture(cv);} // 追加: 駐車枠の絵
+function buildGames3400(){ // 追加: 追加ミニゲームの施設を作る
+  if(SET.route!==9)return; // 追加: パークだけ
+  const g=new THREE.Group();g.name='fungames3400';scene.add(g); // 追加: 施設のグループ
+  const LM2=LM; // 追加: 材質の省略
+  // 駐車場と駐車チャレンジ
+  const pc=parkPt3300(900,-40);const pgy=groundYAt(pc.x,pc.z);const pDir={x:Math.cos(pc.h),z:-Math.sin(pc.h)},pFwd={x:Math.sin(pc.h),z:Math.cos(pc.h)}; // 追加: 駐車場の場所と向き
+  const pave=new THREE.Mesh(new THREE.BoxGeometry(30,0.14,22),LM2(0x3a4350));pave.position.set(pc.x,pgy+0.02,pc.z);pave.rotation.y=pc.h;g.add(pave); // 追加: 駐車場の地面
+  const spotTexW=spotTexture3400(false); // 追加: 白い枠
+  for(let r=0;r<2;r++)for(let c=0;c<4;c++){const lx=(c-1.5)*6.4,lz=(r?6.8:-6.8);const wx=pc.x+pDir.x*lx+pFwd.x*lz,wz=pc.z+pDir.z*lx+pFwd.z*lz;const sh=pc.h+(r?Math.PI:0);const sm=new THREE.Mesh(new THREE.BoxGeometry(3.4,0.07,6.6),new THREE.MeshLambertMaterial({map:spotTexW}));sm.position.set(wx,pgy+0.12,wz);sm.rotation.y=sh;g.add(sm);FUN3400.spots.push({x:wx,z:wz,h:sh,mesh:sm});} // 追加: 駐車枠8台分
+  FUN3400.parkTarget=Math.floor(Math.random()*8);FUN3400.spots[FUN3400.parkTarget].mesh.material=new THREE.MeshLambertMaterial({map:spotTexture3400(true)}); // 追加: 目標の枠を金色に
+  const psign=new THREE.Mesh(new THREE.PlaneGeometry(11,2),new THREE.MeshBasicMaterial({map:signTexture3100('PARKING CHALLENGE','#111827','#7dd3fc'),side:THREE.DoubleSide}));psign.position.set(pc.x,pgy+5.4,pc.z);psign.rotation.y=pc.h;g.add(psign); // 追加: 駐車場の看板
+  // ボウリング
+  const bc=parkPt3300(1150,38);const bgy=groundYAt(bc.x,bc.z); // 追加: レーンの場所
+  const lane=new THREE.Mesh(new THREE.BoxGeometry(7.5,0.1,38),LM2(0xd6b98a));lane.position.set(bc.x,bgy+0.03,bc.z);lane.rotation.y=bc.h;g.add(lane); // 追加: レーン
+  [-4.1,4.1].forEach(lx=>{const wx=bc.x+Math.cos(bc.h)*lx,wz=bc.z-Math.sin(bc.h)*lx;const gut=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.35,38),LM2(0x374151));gut.position.set(wx,bgy+0.15,wz);gut.rotation.y=bc.h;g.add(gut);}); // 追加: ガター
+  const bsign=new THREE.Mesh(new THREE.PlaneGeometry(11,2),new THREE.MeshBasicMaterial({map:signTexture3100('CAR BOWLING','#111827','#f9a8d4'),side:THREE.DoubleSide}));bsign.position.set(bc.x,bgy+5.2,bc.z);bsign.rotation.y=bc.h;g.add(bsign); // 追加: ボウリングの看板
+  for(let r=0;r<4;r++)for(let c=0;c<=r;c++){const lx=(c-r/2)*1.8,lz=11+r*1.8;const wx=bc.x+Math.cos(bc.h)*lx+Math.sin(bc.h)*lz,wz=bc.z-Math.sin(bc.h)*lx+Math.cos(bc.h)*lz;const outer=new THREE.Group();outer.position.set(wx,groundYAt(wx,wz),wz);outer.rotation.y=bc.h;const pivot=new THREE.Group();outer.add(pivot);const pin=new THREE.Mesh(new THREE.CylinderGeometry(0.48,0.62,1.8,10),LM2(0xf8fafc));pin.position.y=0.9;pivot.add(pin);const band=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,0.32,10),LM2(0xdc2626));band.position.y=1.32;pivot.add(band);g.add(outer);FUN3400.pins.push({x:wx,z:wz,down:false,pivot:pivot});} // 追加: ピン10本
+  // カーバッティングセンター
+  const tp=parkPt3300(300,-34);const tgy=groundYAt(tp.x,tp.z);const tlen=Math.hypot(P[300].lx,P[300].lz)||1;const dir={x:-P[300].lx/tlen,z:-P[300].lz/tlen}; // 追加: 打つ方向（外向き）
+  const plate=new THREE.Mesh(new THREE.BoxGeometry(5,0.12,5),LM2(0xe5e7eb));plate.position.set(tp.x,tgy+0.03,tp.z);g.add(plate); // 追加: ホームプレート
+  const mach=new THREE.Mesh(new THREE.BoxGeometry(1.6,2.2,1.6),LM2(0x475569));mach.position.set(tp.x-dir.x*16,tgy+1.1,tp.z-dir.z*16);g.add(mach); // 追加: ピッチングマシン
+  [30,50,80,100].forEach(dm=>{const mx=tp.x+dir.x*dm,mz=tp.z+dir.z*dm;const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.14,0.14,4.6,6),LM2(0x374151));pole.position.set(mx,groundYAt(mx,mz)+2.3,mz);g.add(pole);const sg=new THREE.Mesh(new THREE.PlaneGeometry(4.4,1.5),new THREE.MeshBasicMaterial({map:signTexture3100(dm+'m','#111827','#fde68a'),side:THREE.DoubleSide}));sg.position.set(mx,groundYAt(mx,mz)+5,mz);sg.rotation.y=tp.h;g.add(sg);}); // 追加: 距離の看板
+  const bsign2=new THREE.Mesh(new THREE.PlaneGeometry(12,2),new THREE.MeshBasicMaterial({map:signTexture3100('CAR BATTING','#111827','#86efac'),side:THREE.DoubleSide}));bsign2.position.set(tp.x-dir.x*8,tgy+5.6,tp.z-dir.z*8);bsign2.rotation.y=tp.h;g.add(bsign2); // 追加: バッティングの看板
+  const ball=new THREE.Mesh(new THREE.SphereGeometry(0.5,10,10),LM2(0xffffff));ball.visible=false;scene.add(ball); // 追加: ボール
+  FUN3400.bat={ball:ball,state:'ready',timer:2.5,vel:{x:0,y:0,z:0},plate:{x:tp.x,z:tp.z},dir:dir,pitchFrom:{x:tp.x-dir.x*16,z:tp.z-dir.z*16},gy:tgy}; // 追加: バッティングの状態
+  // ドリフトチャレンジの看板とコーン
+  [1180,1360].forEach((ci,k)=>{const pt=parkPt3300(ci,14);const sg=new THREE.Mesh(new THREE.PlaneGeometry(11,2),new THREE.MeshBasicMaterial({map:signTexture3100(k?'DRIFT ZONE END':'DRIFT CHALLENGE','#111827','#f0abfc'),side:THREE.DoubleSide}));sg.position.set(pt.x,groundYAt(pt.x,pt.z)+4.6,pt.z);sg.rotation.y=pt.h;g.add(sg);const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.14,0.14,4.4,6),LM2(0x374151));pole.position.set(pt.x,groundYAt(pt.x,pt.z)+2.2,pt.z);g.add(pole);}); // 追加: ゾーンの看板
+  for(let ci=1180;ci<=1360;ci+=36){[-1,1].forEach(s=>{const pt=parkPt3300(ci,s*((P[ci].lim||10)+2));const cone=new THREE.Mesh(new THREE.ConeGeometry(0.5,1.1,8),LM2(0xf97316));cone.position.set(pt.x,groundYAt(pt.x,pt.z)+0.55,pt.z);g.add(cone);});} // 追加: ゾーンのコーン
+  // ヒルクライム（一番きつい登り区間を探す）
+  const U=[P[0].y];for(let i=1;i<2*N;i++)U.push(U[i-1]+(P[i%N].y-P[(i-1)%N].y)); // 追加: 高さの累積
+  let bi=0,bv=-1e9;for(let i=0;i<N;i++){const v=U[i+170]-U[i];if(v>bv){bv=v;bi=i;}} // 追加: 一番登る区間
+  FUN3400.hill={i0:bi,rise:bv,U:U,active:false,maxH:0,stopT:0}; // 追加: ヒルクライムの状態
+  const hpt=parkPt3300(bi,14);const hsign=new THREE.Mesh(new THREE.PlaneGeometry(12,2.1),new THREE.MeshBasicMaterial({map:signTexture3100('HILL CLIMB START','#111827','#fca5a5'),side:THREE.DoubleSide}));hsign.position.set(hpt.x,groundYAt(hpt.x,hpt.z)+4.8,hpt.z);hsign.rotation.y=hpt.h;g.add(hsign); // 追加: スタート看板
+  [10,20,30,40,50].forEach(tm=>{for(let j=bi+4;j<bi+170;j++){if(U[j]-U[bi]>=tm){const mp=parkPt3300(j%N,14);const msg=new THREE.Mesh(new THREE.PlaneGeometry(4,1.4),new THREE.MeshBasicMaterial({map:signTexture3100(tm+'m','#111827','#fca5a5'),side:THREE.DoubleSide}));msg.position.set(mp.x,groundYAt(mp.x,mp.z)+3.4,mp.z);msg.rotation.y=mp.h;g.add(msg);break;}}}); // 追加: 高さの看板
+  // 風船割り
+  const popCols=[0xef4444,0x3b82f6,0x22c55e,0xf59e0b,0xec4899,0xa855f7]; // 追加: 風船の色
+  [90,210,330,390,560,690,720,880,1110,1230,1290,1470].forEach((ci,k)=>{const pt=parkPt3300(ci,(k%2?3:-3));const bm=new THREE.Mesh(new THREE.SphereGeometry(1.05,10,10),LM2(popCols[k%6]));bm.position.set(pt.x,pt.y+1.5,pt.z);g.add(bm);FUN3400.pops.push({x:pt.x,z:pt.z,mesh:bm,hit:false});}); // 追加: 風船12個
+  // HUD2
+  const hud=document.createElement('div');hud.id='funHud3400';hud.style.cssText='position:fixed;top:94px;left:50%;transform:translateX(-50%);background:rgba(8,10,14,.78);border:1px solid #38bdf8;color:#e0f2fe;border-radius:999px;padding:6px 16px;font-size:13px;z-index:60;display:none;white-space:nowrap;';document.body.appendChild(hud);FUN3400.hud=hud; // 追加: 追加ゲームの表示
+} // 追加: 施設作りここまで
+function funStep3400(dt){ // 追加: 追加ミニゲームの判定
+  try{
+    if(FUN3400.hud&&(!FUN3400.on||state!=='game'))FUN3400.hud.style.display='none'; // 追加: HUDを隠す
+    if(!FUN3400.on||state!=='game'||SET.mode!=='free')return; // 追加: フリーラン中だけ
+    const lp=(SET.netMode&&!SET.host)?players[1]:players[0];if(!lp||!lp.S)return; // 追加: 自分の車
+    const spd=Math.hypot(lp.S.u,lp.S.v)*3.6;const parts=[]; // 追加: 速度と表示部品
+    // 駐車チャレンジ
+    const spot=FUN3400.spots[FUN3400.parkTarget]; // 追加: 目標の枠
+    if(spot){const fx=Math.sin(spot.h),fz=Math.cos(spot.h),rx=Math.cos(spot.h),rz=-Math.sin(spot.h);const dx=lp.S.x-spot.x,dz=lp.S.z-spot.z;const lx=dx*rx+dz*rz,lzz=dx*fx+dz*fz;const dh=Math.min(Math.abs(angDiff3400(lp.S.h,spot.h)),Math.abs(angDiff3400(lp.S.h,spot.h+Math.PI))); // 追加: 枠の中と向きを判定
+      if(Math.abs(lx)<1.6&&Math.abs(lzz)<2.9&&dh<0.45&&spd<1.2){FUN3400.parkHold+=dt;parts.push('駐車中…そのまま止まって！');if(FUN3400.parkHold>1.2){SET.money[0]+=30000;save();showComment('駐車成功！ ¥30,000');setBubble3300('駐車バッチリ！');spot.mesh.material=new THREE.MeshLambertMaterial({map:spotTexture3400(false)});let nt=FUN3400.parkTarget;while(nt===FUN3400.parkTarget)nt=Math.floor(Math.random()*8);FUN3400.parkTarget=nt;FUN3400.spots[nt].mesh.material=new THREE.MeshLambertMaterial({map:spotTexture3400(true)});FUN3400.parkHold=0;}}else FUN3400.parkHold=Math.max(0,FUN3400.parkHold-dt*2);} // 追加: 駐車成功で次の枠へ
+    // ボウリング
+    for(const pn of FUN3400.pins){if(pn.down&&pn.pivot.rotation.x<1.3)pn.pivot.rotation.x=Math.min(1.35,pn.pivot.rotation.x+dt*3.4);if(!pn.down&&Math.hypot(lp.S.x-pn.x,lp.S.z-pn.z)<2.4){pn.down=true;FUN3400.bowlN++;if(FUN3400.bowlState==='ready'){FUN3400.bowlState='active';FUN3400.bowlTimer=0;}setBubble3300('ピン '+FUN3400.bowlN+' 本！');}} // 追加: ピンを倒す
+    if(FUN3400.bowlState==='active'){parts.push('ボウリング '+FUN3400.bowlN+'/10');if(spd<2)FUN3400.bowlTimer+=dt;if(FUN3400.bowlTimer>3){const n=FUN3400.bowlN;const prize=n>=10?100000:(n>=7?40000:(n>=4?15000:n*2000));if(prize>0){SET.money[0]+=prize;save();}showComment(n>=10?'ストライク！ ¥100,000':('ボウリング '+n+' 本！'+(prize>0?' ¥'+prize.toLocaleString():'')));setBubble3300(n>=10?'ストライク！すごい！':('ボウリング '+n+' 本'));FUN3400.bowlState='cool';setTimeout(()=>{FUN3400.pins.forEach(p2=>{p2.down=false;p2.pivot.rotation.x=0;});FUN3400.bowlN=0;FUN3400.bowlState='ready';},5000);}} // 追加: ボウリングの結果
+    // バッティング
+    const bat=FUN3400.bat; // 追加: バッティングの状態
+    if(bat){const B=bat.ball; // 追加: ボール
+      if(bat.state==='ready'){bat.timer-=dt;if(bat.timer<=0){bat.state='pitch';B.visible=true;B.position.set(bat.pitchFrom.x,bat.gy+1.4,bat.pitchFrom.z);bat.vel={x:bat.dir.x*15,y:1.5,z:bat.dir.z*15};}} // 追加: 投球開始
+      else if(bat.state==='pitch'){B.position.x+=bat.vel.x*dt;B.position.z+=bat.vel.z*dt;B.position.y+=bat.vel.y*dt;bat.vel.y-=9*dt;if(B.position.y<bat.gy+0.5)B.position.y=bat.gy+0.5; // 追加: ボールを進める
+        if(Math.hypot(B.position.x-lp.S.x,B.position.z-lp.S.z)<2.7){const pw=26+spd*0.3+(spd>55?12:0);bat.state='hit';bat.vel={x:bat.dir.x*pw*0.8,y:pw*0.55,z:bat.dir.z*pw*0.8};setBubble3300('打った！');} // 追加: 車に当たって打ち返す
+        else{const along=(B.position.x-bat.pitchFrom.x)*bat.dir.x+(B.position.z-bat.pitchFrom.z)*bat.dir.z;if(along>19){bat.state='dead';bat.timer=1.4;setBubble3300('見逃し…次は打って！');}}} // 追加: 見逃し
+      else if(bat.state==='hit'){B.position.x+=bat.vel.x*dt;B.position.z+=bat.vel.z*dt;B.position.y+=bat.vel.y*dt;bat.vel.y-=12*dt;const gy2=groundYAt(B.position.x,B.position.z);if(B.position.y<=gy2+0.45){const dist=Math.floor(Math.hypot(B.position.x-bat.plate.x,B.position.z-bat.plate.z));const prize=dist>=100?80000:(dist>=70?40000:(dist>=45?15000:(dist>=25?5000:0)));if(prize>0){SET.money[0]+=prize;save();}showComment((dist>=100?'ホームラン！ ':dist>=45?'ナイスバッティング！ ':'ゴロ… ')+dist+'m'+(prize>0?' ¥'+prize.toLocaleString():''));setBubble3300(dist>=100?'ホームラン！':(dist+'m 飛んだ！'));bat.state='dead';bat.timer=1.6;}} // 追加: 打球の結果
+      else if(bat.state==='dead'){bat.timer-=dt;if(bat.timer<=0){bat.state='ready';bat.timer=2.2;B.visible=false;}} // 追加: 次の球へ
+    } // 追加: バッティングここまで
+    // ドリフトチャレンジ
+    const inz=lp.ti>=1180&&lp.ti<=1360;const chain=(typeof driftState!=='undefined'&&driftState[lp.k])?(driftState[lp.k].chain||0):0; // 追加: ゾーンとチェーン
+    if(inz){if(chain>FUN3400.drift.best)FUN3400.drift.best=chain;if(chain>0)parts.push('ドリフト '+Math.floor(Math.max(chain,FUN3400.drift.best))+' pt');} // 追加: ゾーン内を記録
+    if(!inz&&FUN3400.drift.in){const b=Math.floor(FUN3400.drift.best);const prize=b>=20000?120000:(b>=10000?50000:(b>=5000?20000:(b>=2000?5000:0)));if(b>0){if(prize>0){SET.money[0]+=prize;save();}if(b>(SET.funDriftBest||0)){SET.funDriftBest=b;save();}showComment('ドリフトチャレンジ: '+b.toLocaleString()+' pt'+(prize>0?' ¥'+prize.toLocaleString():''));setBubble3300('ドリフト '+b.toLocaleString()+' pt！');}FUN3400.drift.best=0;} // 追加: ゾーンを出たら結果
+    FUN3400.drift.in=inz; // 追加: ゾーン状態
+    // ヒルクライム
+    const H=FUN3400.hill; // 追加: ヒルクライムの状態
+    if(H){const prog=(lp.ti-H.i0+N)%N; // 追加: スタートからの進み
+      if(!H.active&&(prog<3||prog>N-3)&&spd<30){H.active=true;H.maxH=0;H.stopT=0;setBubble3300('ヒルクライム 開始！');} // 追加: スタート
+      if(H.active){if(prog<200){const hh=H.U[H.i0+prog]-H.U[H.i0];if(hh>H.maxH)H.maxH=hh;parts.push('ヒルクライム 現在 '+Math.floor(H.maxH)+'m');} // 追加: 高さを記録
+        if(prog>=200||prog>N-10){H.active=false;} // 追加: 範囲外で終了
+        else if(spd<3&&prog>5){H.stopT+=dt;if(H.stopT>1.5){const mh2=Math.floor(H.maxH);const prize=mh2>=45?100000:(mh2>=35?60000:(mh2>=25?30000:(mh2>=15?15000:(mh2>=8?5000:0))));if(prize>0){SET.money[0]+=prize;}if(mh2>(SET.funHillBest||0))SET.funHillBest=mh2;save();showComment('ヒルクライム: '+mh2+'m 地点まで登った！'+(prize>0?' ¥'+prize.toLocaleString():''));setBubble3300(mh2+'m まで登った！');H.active=false;}}else H.stopT=0;}} // 追加: 止まったら結果
+    // 風船割り
+    for(const pp of FUN3400.pops){if(pp.hit)continue;if(Math.hypot(lp.S.x-pp.x,lp.S.z-pp.z)<2.7){pp.hit=true;pp.mesh.visible=false;FUN3400.popN++;SET.money[0]+=1000;setBubble3300('ポップ！ '+FUN3400.popN+'/12');if(FUN3400.popN>=12){SET.money[0]+=30000;save();showComment('風船 全割り！ ¥31,000');setBubble3300('風船 全部割った！');setTimeout(()=>{FUN3400.pops.forEach(p2=>{p2.hit=false;p2.mesh.visible=true;});FUN3400.popN=0;},8000);}}} // 追加: 風船を割る
+    // HUD2
+    const hud=FUN3400.hud;if(hud){if(parts.length){hud.style.display='block';const s=parts.join('　|　');if(hud._s!==s){hud._s=s;hud.textContent=s;}}else hud.style.display='none';} // 追加: HUD2更新
+  }catch(e){} // 追加: 安全に
+} // 追加: 追加ミニゲームここまで
+const _ps3400=pedStep;pedStep=function(dt){const r=_ps3400(dt);funStep3400(dt||0.016);return r;}; // 追加: 毎フレーム処理に追加ゲームを足す
+try{buildGames3400();}catch(e){} // 追加: 施設を作る
+// ======== 追加: v34.0 ここまで ========
 applyQual();go('main');layout();requestAnimationFrame(loop);
 setTimeout(netAutoRejoin,1200); // 追加: オンライン切替でのリロードなら部屋へ自動で戻る
 })();
