@@ -6905,6 +6905,21 @@ function funStep3700(dt){ // 追加: 土地のゲーム（丘・最高速・駐�
 } // 追加: 土地のゲームここまで
 const _ps3700=pedStep;pedStep=function(dt){const r=_ps3700(dt);funStep3700(dt||0.016);return r;}; // 追加: 毎フレーム処理に土地のゲームを足す
 // ======== 追加: v37.0 ここまで ========
+// ======== 追加: v38.0 パークの残留物を全部消す（建物・ビル・観客席・木・山・看板ゲート・お店） ========
+if(SET.route===9){ // 追加: 土地だけのマップにする
+  const scen=scene.children.find(o=>o.name==='courseScenery');if(scen)scen.visible=false; // 追加: 観客席・木・遠くのビルと山を消す
+  scene.children.forEach(ch=>{ // 追加: スタートの看板ゲートを消す（梁の形で探す）
+    if(!ch.isGroup||ch.name==='plaza3500')return;let isGate=false;ch.traverse(n=>{if(n.isMesh&&n.geometry&&n.geometry.type==='BoxGeometry'&&n.geometry.parameters&&Math.abs(n.geometry.parameters.width-33)<0.01&&Math.abs(n.geometry.parameters.height-0.4)<0.01)isGate=true;}); // 追加: ゲート判定
+    if(isGate)ch.visible=false;}); // 追加: ゲートを消す
+  scene.children.forEach(ch=>{ // 追加: お店の建物を消す
+    if(!ch.isGroup||ch.name==='plaza3500')return; // 追加: 広場は残す
+    if(ch.name&&ch.name.indexOf('store-')===0){ch.visible=false;return;} // 追加: 移設されたお店
+    for(const st of STORES){if(st.pos&&Math.hypot(ch.position.x-st.pos.x,ch.position.z-st.pos.z)<34){ch.visible=false;break;}} // 追加: お店の場所にある建物
+  }); // 追加: お店消しここまで
+  if(typeof photoBoardGroup!=='undefined'&&photoBoardGroup)photoBoardGroup.visible=false; // 追加: 写真掲示板も消す
+  STORES.forEach(st=>{st.pos={x:99999,z:99999,y:0,lx:0,lz:0,h:0,tx:0,tz:0,lim:10};}); // 追加: このマップではお店の案内も出さない
+} // 追加: 残留物消しここまで
+// ======== 追加: v38.0 ここまで ========
 applyQual();go('main');layout();requestAnimationFrame(loop);
 setTimeout(netAutoRejoin,1200); // 追加: オンライン切替でのリロードなら部屋へ自動で戻る
 })();
