@@ -6383,7 +6383,7 @@ function renderHome3200(){ // 追加: ホーム画面を描く
       +'<button class="btn" data-home-back="1" style="width:100%;margin-top:10px">← もどる</button>'; // 追加: 2つの大きな入口
   }else if(homeView3200==='free'){ // 追加: フリーラン選択（街と遊園地）
     h+='<div style="font-size:11px;letter-spacing:3px;color:#9fb4c8;margin-top:10px">FREE RUN</div><h2 style="color:#ffd700;margin:4px 0 8px">フリーラン</h2><div style="font-size:13px;color:#9fb4c8;margin-bottom:6px">コース</div><div style="display:grid;gap:8px">'
-      +[0,7,9].map(i=>'<button class="btn '+(homeSel3200.freeRoute===i?'gold':'')+'" data-home-freeroute="'+i+'" style="text-align:left;padding:12px">'+esc2900(stripEmoji3300(ROUTES[i].n))+(i===9?'<div style="font-size:11px;font-weight:normal">大きな広場の遊園地：観覧車と遊具、ミニゲームいっぱい</div>':'')+'</button>').join('')+'</div>'; // 追加: フリーのコース
+      +[0,7,9].map(i=>'<button class="btn '+(homeSel3200.freeRoute===i?'gold':'')+'" data-home-freeroute="'+i+'" style="text-align:left;padding:12px">'+esc2900(stripEmoji3300(ROUTES[i].n))+(i===9?'<div style="font-size:11px;font-weight:normal">道路なし・1つの大きな土地：遊具とミニゲームと丘があるよ</div>':'')+'</button>').join('')+'</div>'; // 追加: フリーのコース
     h+='<div style="font-size:13px;color:#9fb4c8;margin:12px 0 6px">モード</div><div style="display:flex;gap:8px;flex-wrap:wrap">'
       +[['free','フリー走行'],['chase','逃走'],['police','追跡']].map(m2=>'<button class="btn '+(homeSel3200.freeMode===m2[0]?'gold':'')+'" data-home-freemode="'+m2[0]+'">'+m2[1]+'</button>').join('')+'</div>'; // 追加: フリー系モード
     h+='<button class="btn gold" data-home-start="free" style="width:100%;font-size:20px;padding:15px;margin-top:16px">▶ スタート</button><button class="btn" data-home-back="1" style="width:100%;margin-top:8px">← もどる</button>'; // 追加: 開始と戻る
@@ -6832,6 +6832,79 @@ function funStep3600(dt){ // 追加: 障害物の当たり判定と、道路か�
 } // 追加: 当たり判定の補助ここまで
 const _ps3600=pedStep;pedStep=function(dt){const r=_ps3600(dt);funStep3600(dt||0.016);return r;}; // 追加: 毎フレーム処理に当たり判定を足す
 // ======== 追加: v36.0 ここまで ========
+// ======== 追加: v37.0 パークを「道路なし・1個の土地」に作り替え ========
+if(SET.route===9){ // 追加: 周りの道路を見えなくする（土地だけにする）
+  const roadCols=[0x383a42,0xf2f2f2,0xe6e9ec,0x7d7a6c,0xb9b5ab,0xd4d0c6,0xcfc8b8,0x3b352a]; // 追加: 道路まわりの色
+  scene.children.slice().forEach(o=>{if(!o.isMesh||!o.geometry||!o.material||!o.material.color)return;const hex=o.material.color.getHex(); // 追加: 道路の帯を探す
+    if(o.geometry.attributes&&o.geometry.attributes.position&&o.geometry.attributes.position.count>4000&&roadCols.indexOf(hex)>=0)o.visible=false; // 追加: コースの帯を隠す
+    else if(o.geometry.type==='PlaneGeometry'&&o.geometry.parameters&&o.geometry.parameters.width===18&&hex===0x383a42)o.visible=false;}); // 追加: 枝道を隠す
+} // 追加: 道路隠しここまで
+const FUN3700={cx:FUN3500.plaza.x,cz:FUN3500.plaza.z,mound:null,hill:{active:false,maxH:0,stopT:0,wasIn:false},runMax:0,spots:[]}; // 追加: 土地の状態
+['plaza3500'].forEach(nm=>{const o=scene.children.find(o2=>o2.name===nm);if(o)scene.remove(o);}); // 追加: 前の広場を取り除く
+if(FUN3400.bat&&FUN3400.bat.ball)scene.remove(FUN3400.bat.ball); // 追加: 前のボールを消す
+FUN3300.rings=[];FUN3300.ringN=0;FUN3300.panels=[];FUN3300.panelN=0;FUN3300.pads=[];FUN3300.balloons=[];FUN3300.wheel=null;FUN3300.gondolas=[];FUN3300.mascot=null;FUN3300.armR=null; // 追加: 状態をリセット
+FUN3400.spots=[];FUN3400.pins=[];FUN3400.pops=[];FUN3400.popN=0;FUN3400.bowlN=0;FUN3400.bowlState='ready';FUN3400.bat=null;FUN3400.drift={in:false,best:0};FUN3400.hill=null;FUN3500.colliders=[]; // 追加: 状態をリセット（前のヒルクライムは廃止）
+FUN3500.plaza={x:FUN3700.cx,z:FUN3700.cz,half:400}; // 追加: 土地は1辺800m
+try{buildPlaza3500();}catch(e){} // 追加: 大きな土地に施設を作り直す
+(function(){ // 追加: 丘（ヒルクライム用）を作る
+  const mx=FUN3700.cx-330,mz=FUN3700.cz-330,R=85,H=24;FUN3700.mound={x:mx,z:mz,r:R,h:H}; // 追加: 丘の場所
+  const geo=new THREE.PlaneGeometry(R*2,R*2,26,26);geo.rotateX(-Math.PI/2);const posA=geo.attributes.position; // 追加: 丘の形
+  for(let i=0;i<posA.count;i++){const vx=posA.getX(i),vz=posA.getZ(i);const d=Math.hypot(vx,vz);posA.setY(i,d>=R?0:H*(0.5+0.5*Math.cos(Math.PI*d/R)));} // 追加: なめらかな丘
+  geo.computeVertexNormals();const hill=new THREE.Mesh(geo,LM(0x69a353));hill.position.set(mx,0.16,mz);scene.add(hill); // 追加: 丘の見た目
+  const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,7,6),LM(0x374151));pole.position.set(mx,0.16+H+3.5,mz);scene.add(pole);const flag=new THREE.Mesh(new THREE.BoxGeometry(3.4,1.8,0.15),LM(0xdc2626));flag.position.set(mx+1.7,0.16+H+6,mz);scene.add(flag); // 追加: 頂上の旗
+  const sg=new THREE.Mesh(new THREE.PlaneGeometry(12,2.2),new THREE.MeshBasicMaterial({map:signTexture3100('HILL CLIMB','#111827','#fde68a'),side:THREE.DoubleSide}));sg.position.set(mx,3.4,mz+R+12);scene.add(sg); // 追加: 入口の看板
+  [-4.5,4.5].forEach(lx=>{const p2=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.13,3.2,6),LM(0x374151));p2.position.set(mx+lx,1.6,mz+R+12);scene.add(p2);FUN3500.colliders.push({x:mx+lx,z:mz+R+12,r:0.5});}); // 追加: 看板の柱
+})(); // 追加: 丘ここまで
+function moundH3700(x,z){const m=FUN3700.mound;if(!m)return 0;const d=Math.hypot(x-m.x,z-m.z);return d>=m.r?0:m.h*(0.5+0.5*Math.cos(Math.PI*d/m.r));} // 追加: 丘の高さ
+const _gy3700=groundYAt;groundYAt=function(x,z){ // 追加: 土地の中は平ら＋丘だけ
+  if(SET.route===9&&Math.max(Math.abs(x-FUN3700.cx),Math.abs(z-FUN3700.cz))<470)return 0.16+moundH3700(x,z); // 追加: 土地の高さ
+  return _gy3700(x,z);}; // 追加: それ以外は今まで通り
+for(let k=0;k<28;k++){const a=k/28*Math.PI*2;FUN3700.spots.push({x:FUN3700.cx+Math.cos(a)*352,z:FUN3700.cz+Math.sin(a)*352,h:Math.atan2(-Math.sin(a),Math.cos(a))});} // 追加: 交通車を停める場所（土地のふち）
+funStep3300=function(dt){ // 追加: パークの動きとミニゲーム（最高速ゾーンは廃止した版）
+  try{
+    if(FUN3300.wheel){FUN3300.wheel.rotation.z+=dt*0.3;FUN3300.gondolas.forEach(gd=>{gd.rotation.z=-FUN3300.wheel.rotation.z;});} // 追加: 観覧車
+    if(FUN3300.mascot){const t=performance.now()/1000;FUN3300.mascot.position.y=FUN3300.mascotY+Math.abs(Math.sin(t*2))*0.09;if(FUN3300.armR)FUN3300.armR.rotation.z=-0.5+Math.sin(t*3.2)*0.55;} // 追加: マスコット
+    FUN3300.balloons.forEach((b,i)=>{b.position.y=b.userData.y0+Math.sin(performance.now()/900+i*1.7)*0.45;}); // 追加: 風船の飾り
+    if(FUN3300.bubbleTimer>0){FUN3300.bubbleTimer-=dt;if(FUN3300.bubbleTimer<=0&&FUN3300.bubbleCv)setBubble3300(FUN3300.tips[Math.floor(Math.random()*FUN3300.tips.length)]);} // 追加: 吹き出し
+    if(FUN3300.hud&&(!FUN3300.on||state!=='game'))FUN3300.hud.style.display='none'; // 追加: HUDを隠す
+    if(!FUN3300.on||state!=='game'){FUN3600.prevX=null;return;} // 追加: ゲーム中だけ
+    const lp=(SET.netMode&&!SET.host)?players[1]:players[0];if(!lp||!lp.S){FUN3600.prevX=null;return;} // 追加: 自分の車
+    const spd=Math.hypot(lp.S.u,lp.S.v)*3.6;const cxp=lp.S.x,czp=lp.S.z;const pxp=FUN3600.prevX,pzp=FUN3600.prevZ; // 追加: 速度と位置
+    if(FUN3300.hopT>=0)FUN3300.hopT+=dt;if(FUN3300.hopT>FUN3300.hopDur)FUN3300.hopT=-1; // 追加: ジャンプの進行
+    if(SET.mode==='free'){ // 追加: フリーランでミニゲーム
+      if(FUN3300.hopT<0){for(const pd of FUN3300.pads){const align=Math.sin(lp.S.h)*Math.sin(pd.h||0)+Math.cos(lp.S.h)*Math.cos(pd.h||0);if(Math.hypot(cxp-pd.x,czp-pd.z)<6&&spd>35&&align>0.5){FUN3300.hopT=0;FUN3300.hopH=Math.min(4.5,1.6+spd/55);setBubble3300('ジャンプ！');break;}}} // 追加: ジャンプ台
+      for(const r of FUN3300.rings){if(r.hit)continue;let hit=false;const dd=Math.hypot(cxp-r.x,czp-r.z); // 追加: 的当て（輪の面を通った時だけ）
+        if(dd<1.3)hit=true; // 追加: 中心を通った
+        else if(pxp!==null&&dd<3.8){const rh=r.mesh.rotation.y;const nx=Math.sin(rh),nz=Math.cos(rh);const s0=(pxp-r.x)*nx+(pzp-r.z)*nz;const s1=(cxp-r.x)*nx+(czp-r.z)*nz;if(s0*s1<0)hit=true;} // 追加: 輪の面をくぐった
+        if(hit){r.hit=true;r.mesh.material=LM(0x22c55e);FUN3300.ringN++;setBubble3300('的当て ナイス！ '+FUN3300.ringN+'/10');if(FUN3300.ringN>=10){SET.money[0]+=100000;save();showComment('的当てコンプリート！ ¥100,000');setBubble3300('的当て 全部命中！すごい！');setTimeout(()=>{FUN3300.rings.forEach(r2=>{r2.hit=false;r2.mesh.material=LM(0xffd700);});FUN3300.ringN=0;},6000);}}} // 追加: 的当て
+      for(const pn of FUN3300.panels){if(pn.down&&pn.fall<1){pn.fall=Math.min(1,pn.fall+dt*2.6);pn.pivot.rotation.x=-1.35*pn.fall;}if(!pn.down&&Math.hypot(cxp-pn.x,czp-pn.z)<2.6){pn.down=true;FUN3300.panelN++;setBubble3300('ストライク！ '+pn.num+'番');if(FUN3300.panelN>=9){SET.money[0]+=50000;save();showComment('ストラックアウト達成！ ¥50,000');setBubble3300('全部倒した！やったね！');setTimeout(()=>{FUN3300.panels.forEach(p2=>{p2.down=false;p2.fall=0;p2.pivot.rotation.x=0;});FUN3300.panelN=0;},15000);}}} // 追加: ストラックアウト
+    } // 追加: ミニゲームここまで
+    const hud=FUN3300.hud;if(hud){const show=(state==='game'&&SET.mode==='free');hud.style.display=show?'block':'none';if(show){const s='的当て '+FUN3300.ringN+'/10　|　ストラックアウト '+FUN3300.panelN+'/9　|　最高速ベスト '+(SET.funBest||0)+' km/h';if(hud._s!==s){hud._s=s;hud.textContent=s;}}} // 追加: HUD更新
+    FUN3600.prevX=cxp;FUN3600.prevZ=czp; // 追加: 位置を覚える
+  }catch(e){} // 追加: 安全に
+}; // 追加: 土地版ここまで
+function funStep3700(dt){ // 追加: 土地のゲーム（丘・最高速・駐車する交通車）
+  try{
+    if(!FUN3300.on||state!=='game')return; // 追加: パークのゲーム中だけ
+    if(SET.mode==='free'){ // 追加: フリーランだけ
+      TR.forEach((t,i)=>{if(i>=FUN3700.spots.length){if(t.on)t.on=false;return;}const sp=FUN3700.spots[i];if(!sp)return; // 追加: 交通車は土地のふちに停める（余った車は出さない）
+        t.x=sp.x;t.z=sp.z;t.h=sp.h;t.curSpd=0;if(t.g){t.g.position.set(sp.x,groundYAt(sp.x,sp.z),sp.z);t.g.rotation.y=sp.h;}}); // 追加: 停めたままにする
+    } // 追加: 駐車ここまで
+    const lp=(SET.netMode&&!SET.host)?players[1]:players[0];if(!lp||!lp.S)return;const R=SET.gameRecords;const spd=Math.hypot(lp.S.u,lp.S.v)*3.6; // 追加: 自分の車と記録
+    const mh=moundH3700(lp.S.x,lp.S.z);const H=FUN3700.hill; // 追加: ヒルクライム（丘）
+    if(mh>0.2&&!H.wasIn){H.active=true;H.maxH=0;H.stopT=0;setBubble3300('ヒルクライム 開始！');} // 追加: 丘に入ったら開始
+    H.wasIn=mh>0.2; // 追加: 丘の中かどうか
+    if(H.active){if(mh>H.maxH)H.maxH=mh; // 追加: 高さを記録
+      if(spd<3)H.stopT+=dt;else H.stopT=0; // 追加: 止まったら終わり
+      if((mh<=0.2&&H.maxH>3)||(H.stopT>1.5&&H.maxH>3)){const m2=Math.floor(H.maxH);const prize=m2>=22?100000:(m2>=18?60000:(m2>=14?30000:(m2>=9?15000:(m2>=5?5000:0))));if(prize>0)SET.money[0]+=prize;if(m2>(SET.funHillBest||0))SET.funHillBest=m2;if(R)R.hillPlays++;recSave3500();showComment('ヒルクライム: '+m2+'m まで登った！'+(prize>0?' ¥'+prize.toLocaleString():''));setBubble3300(m2+'m まで登った！');H.active=false;H.maxH=0;H.stopT=0;} // 追加: 精算
+      else if(H.stopT>1.5||(mh<=0.2&&H.maxH<=3)){H.active=false;H.maxH=0;H.stopT=0;}} // 追加: 終了
+    if(spd>FUN3700.runMax)FUN3700.runMax=spd; // 追加: 最高速（土地のどこでも）
+    if(FUN3700.runMax>=200&&spd<40){const zm=Math.floor(FUN3700.runMax);const prize=zm>=300?80000:(zm>=250?30000:10000);SET.money[0]+=prize;if(zm>(SET.funBest||0)){SET.funBest=zm;setBubble3300('最高速 新記録 '+zm+'km/h！');}showComment('最高速チャレンジ: '+zm+' km/h　¥'+prize.toLocaleString());save();FUN3700.runMax=0;} // 追加: 最高速の精算
+    if(spd<40&&FUN3700.runMax<200)FUN3700.runMax=0; // 追加: リセット
+  }catch(e){} // 追加: 安全に
+} // 追加: 土地のゲームここまで
+const _ps3700=pedStep;pedStep=function(dt){const r=_ps3700(dt);funStep3700(dt||0.016);return r;}; // 追加: 毎フレーム処理に土地のゲームを足す
+// ======== 追加: v37.0 ここまで ========
 applyQual();go('main');layout();requestAnimationFrame(loop);
 setTimeout(netAutoRejoin,1200); // 追加: オンライン切替でのリロードなら部屋へ自動で戻る
 })();
