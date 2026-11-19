@@ -6930,6 +6930,78 @@ wallHit=function(pl){ // 追加: 土地では見えない壁なし・グリッ�
   return _wallHit3900(pl); // 追加: 他のマップは今まで通り
 }; // 追加: 壁判定の差し替えここまで
 // ======== 追加: v39.0 ここまで ========
+// ======== 追加: v40.0 ビル完全撤去＋歩いて遊べるゲーム（ピコ鬼ごっこ・宝探し・徒歩風船）＋花畑 ========
+if(SET.gameRecords){['tagPlays','tagCatch','treasure'].forEach(k=>{if(SET.gameRecords[k]===undefined)SET.gameRecords[k]=0;});} // 追加: 記録の項目を足す
+const FUN4000={on:(SET.route===9),tag:{active:false,t:0,tx:0,tz:0,re:0,home:null},chest:null,btn:null}; // 追加: 徒歩ゲームの状態
+if(FUN4000.on){ // 追加: パーク専用
+  scene.children.forEach(ch=>{if(ch.isInstancedMesh)ch.visible=false;}); // 追加: コース沿いのビル群（実体はインスタンス）を全部消す
+  const C=FUN3500.plaza; // 追加: 土地の中心
+  const pg=scene.children.find(o=>o.name==='plaza3500'); // 追加: 広場グループ
+  if(pg){ // 追加: 飾りを足す
+    const fcols=[0xff6b9d,0xffd34d,0xffffff,0xff5252,0xc084fc]; // 追加: 花の色
+    [[-220,-216],[64,-236],[0,352],[-228,44],[216,-116],[204,104],[-90,300],[120,330]].forEach((a,ai)=>{ // 追加: 花畑の場所
+      for(let i=0;i<9;i++){const an=i/9*Math.PI*2,fx=C.x+a[0]+Math.cos(an)*3,fz=C.z+a[1]+Math.sin(an)*3; // 追加: 花を輪に並べる
+        const st=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.35,5),LM(0x2f9e44));st.position.set(fx,0.33,fz);pg.add(st); // 追加: 茎
+        const fl=new THREE.Mesh(new THREE.SphereGeometry(0.24,8,6),LM(fcols[(ai+i)%fcols.length]));fl.position.set(fx,0.55,fz);pg.add(fl);} // 追加: 花
+    }); // 追加: 花畑ここまで
+    for(let i=0;i<6;i++){const seg=new THREE.Mesh(new THREE.BoxGeometry(6,0.04,58),LM(0xd9c9a8));seg.position.set(C.x,0.18,C.z+64+i*59);pg.add(seg);} // 追加: 入口からの小道
+  } // 追加: 飾りここまで
+  const chestG=new THREE.Group(); // 追加: 宝箱を作る
+  const cb1=new THREE.Mesh(new THREE.BoxGeometry(0.95,0.55,0.62),LM(0x8b5e34));cb1.position.y=0.28;chestG.add(cb1); // 追加: 箱
+  const cb2=new THREE.Mesh(new THREE.BoxGeometry(0.99,0.24,0.66),LM(0xffd34d));cb2.position.y=0.62;chestG.add(cb2); // 追加: 金の蓋
+  const beam=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.35,34,8,1,true),new THREE.MeshBasicMaterial({color:0xffd34d,transparent:true,opacity:0.30,side:THREE.DoubleSide,depthWrite:false}));beam.position.y=17;chestG.add(beam); // 追加: 光の柱
+  scene.add(chestG);FUN4000.chest=chestG; // 追加: 宝箱を置く
+  FUN4000.placeChest=function(){const C2=FUN3500.plaza;const x=C2.x+(Math.random()*640-320),z=C2.z+(Math.random()*640-320);chestG.position.set(x,groundYAt(x,z),z);}; // 追加: 宝箱の置き場所
+  FUN4000.placeChest(); // 追加: 最初の宝箱
+  const btn=document.createElement('button');btn.setAttribute('data-tag4000','1');btn.textContent='ピコと鬼ごっこ（制限時間60秒）';btn.style.cssText='position:fixed;left:50%;bottom:118px;transform:translateX(-50%);z-index:96;display:none;background:#c9a227;color:#14100a;border:none;border-radius:999px;padding:12px 22px;font-size:16px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.45)';document.body.appendChild(btn);FUN4000.btn=btn; // 追加: 鬼ごっこ開始ボタン
+  if(FUN3300.mascot)FUN4000.tag.home={x:FUN3300.mascot.position.x,z:FUN3300.mascot.position.z}; // 追加: ピコの定位置
+} // 追加: パーク専用の準備ここまで
+document.addEventListener('click',e=>{ // 追加: 鬼ごっこ開始
+  const b=e.target.closest?e.target.closest('[data-tag4000]'):null;if(!b||!FUN4000.on)return; // 追加: ボタンの確認
+  const T=FUN4000.tag;if(T.active||!onFoot)return;T.active=true;T.t=60;T.re=0;SET.gameRecords.tagPlays++;recSave3500(); // 追加: 開始
+  try{setBubble3300('おにごっこ！つかまえてみせて！');}catch(err){}showComment('ピコが逃げた！60秒以内につかまえよう'); // 追加: 合図
+}); // 追加: 開始ボタンここまで
+function funStep4000(dt){ // 追加: 徒歩ゲームの毎フレーム処理
+  if(!FUN4000.on||state!=='game'||SET.mode!=='free')return; // 追加: 条件
+  const T=FUN4000.tag,M=FUN3300.mascot; // 追加: 参照
+  const wPos=(onFoot&&walkChar)?walkChar.g.position:null; // 追加: 歩行者の位置
+  if(FUN4000.btn)FUN4000.btn.style.display=(!T.active&&wPos&&M&&Math.hypot(wPos.x-M.position.x,wPos.z-M.position.z)<6)?'block':'none'; // 追加: 近づくとボタン
+  if(T.active&&M){ // 追加: 鬼ごっこ中
+    T.t-=dt;T.re-=dt; // 追加: 時間を進める
+    const px=wPos?wPos.x:M.position.x,pz=wPos?wPos.z:M.position.z; // 追加: 追う人の位置
+    if(T.re<=0){ // 追加: 逃げる先を決める
+      let ax=M.position.x+(M.position.x-px)*2.2+(Math.random()*70-35),az=M.position.z+(M.position.z-pz)*2.2+(Math.random()*70-35); // 追加: 追う人から離れる方向
+      const C=FUN3500.plaza;ax=Math.max(C.x-370,Math.min(C.x+370,ax));az=Math.max(C.z-370,Math.min(C.z+370,az));T.tx=ax;T.tz=az;T.re=2.2; // 追加: 土地の中に収める
+    } // 追加: 逃げ先ここまで
+    const dx=T.tx-M.position.x,dz=T.tz-M.position.z,dl=Math.hypot(dx,dz); // 追加: 移動量
+    if(dl>0.6){const sp=5.4*dt/dl;M.position.x+=dx*sp;M.position.z+=dz*sp;M.rotation.y=Math.atan2(dx,dz);M.position.y=groundYAt(M.position.x,M.position.z)+Math.abs(Math.sin(performance.now()*0.012))*0.09;} // 追加: 走る
+    if(wPos&&Math.hypot(wPos.x-M.position.x,wPos.z-M.position.z)<1.7){ // 追加: つかまえた
+      T.active=false;SET.money[0]+=30000;SET.gameRecords.tagCatch++;recSave3500();showComment('つかまえた！ +¥30,000');try{setBubble3300('まけた〜！また遊ぼう！');}catch(err){} // 追加: ごほうび
+      if(T.home){M.position.x=T.home.x;M.position.z=T.home.z;M.position.y=groundYAt(T.home.x,T.home.z);} // 追加: 定位置へ戻る
+    }else if(T.t<=0){ // 追加: 時間切れ
+      T.active=false;showComment('時間切れ…ピコの勝ち');try{setBubble3300('にげきったよ！');}catch(err){} // 追加: 負け
+      if(T.home){M.position.x=T.home.x;M.position.z=T.home.z;M.position.y=groundYAt(T.home.x,T.home.z);} // 追加: 定位置へ戻る
+    } // 追加: 勝敗ここまで
+  } // 追加: 鬼ごっこここまで
+  if(wPos){ // 追加: 歩いているときのゲーム
+    const ch=FUN4000.chest; // 追加: 宝箱
+    if(ch&&Math.hypot(wPos.x-ch.position.x,wPos.z-ch.position.z)<2.2){SET.money[0]+=20000;SET.gameRecords.treasure++;recSave3500();showComment('宝箱をあけた！ +¥20,000');FUN4000.placeChest();} // 追加: 宝探し
+    if(FUN3400.pops&&FUN3400.pops.length){ // 追加: 徒歩でも風船割り
+      for(const pp of FUN3400.pops){if(pp.hit)continue; // 追加: まだ割れてない風船
+        if(Math.hypot(wPos.x-pp.x,wPos.z-pp.z)<1.4){pp.hit=true;pp.mesh.visible=false;FUN3400.popN++;SET.money[0]+=1000;SET.gameRecords.popTotal++; // 追加: 割れた
+          if(FUN3400.popN>=12){SET.money[0]+=30000;SET.gameRecords.popClears++;showComment('風船 全割り！ ¥31,000');setTimeout(()=>{FUN3400.pops.forEach(p2=>{p2.hit=false;p2.mesh.visible=true;});FUN3400.popN=0;},8000);}else showComment('ポン！ +¥1,000'); // 追加: 全割りのごほうび
+          recSave3500();} // 追加: 判定ここまで
+      } // 追加: 風船ループここまで
+    } // 追加: 風船ここまで
+    if(FUN3400.hud){let s=''; // 追加: 徒歩用のお知らせ
+      if(T.active)s='鬼ごっこ中：あと'+Math.ceil(T.t)+'秒'; // 追加: 残り時間
+      else if(ch)s='宝箱まで約'+Math.round(Math.hypot(wPos.x-ch.position.x,wPos.z-ch.position.z))+'m'; // 追加: 宝箱までの距離
+      if(s)FUN3400.hud.textContent=s;} // 追加: 表示
+  } // 追加: 歩行ゲームここまで
+} // 追加: 徒歩ゲーム処理ここまで
+const _pedStep4000=pedStep;pedStep=function(dt){const r=_pedStep4000.apply(this,arguments);try{funStep4000(dt);}catch(e){}return r;}; // 追加: 毎フレーム呼ぶ
+const _renderRecords4000=renderRecords3500;renderRecords3500=function(){_renderRecords4000();try{const p=document.getElementById('recordsPanel3500');if(p){let ex=document.getElementById('recordsExtra4000');if(!ex){ex=document.createElement('div');ex.id='recordsExtra4000';p.appendChild(ex);}const R=SET.gameRecords;ex.innerHTML='<div style="margin-top:10px;font-size:14px;line-height:1.9">鬼ごっこ：挑戦 '+R.tagPlays+'回 ／ つかまえた '+R.tagCatch+'回<br>宝探し：見つけた '+R.treasure+'回</div>';}}catch(e){}}; // 追加: 記録に徒歩ゲームを足す
+// ======== 追加: v40.0 ここまで ========
 applyQual();go('main');layout();requestAnimationFrame(loop);
 setTimeout(netAutoRejoin,1200); // 追加: オンライン切替でのリロードなら部屋へ自動で戻る
 })();
