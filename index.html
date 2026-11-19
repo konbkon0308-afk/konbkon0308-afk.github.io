@@ -7002,6 +7002,58 @@ function funStep4000(dt){ // 追加: 徒歩ゲームの毎フレーム処理
 const _pedStep4000=pedStep;pedStep=function(dt){const r=_pedStep4000.apply(this,arguments);try{funStep4000(dt);}catch(e){}return r;}; // 追加: 毎フレーム呼ぶ
 const _renderRecords4000=renderRecords3500;renderRecords3500=function(){_renderRecords4000();try{const p=document.getElementById('recordsPanel3500');if(p){let ex=document.getElementById('recordsExtra4000');if(!ex){ex=document.createElement('div');ex.id='recordsExtra4000';p.appendChild(ex);}const R=SET.gameRecords;ex.innerHTML='<div style="margin-top:10px;font-size:14px;line-height:1.9">鬼ごっこ：挑戦 '+R.tagPlays+'回 ／ つかまえた '+R.tagCatch+'回<br>宝探し：見つけた '+R.treasure+'回</div>';}}catch(e){}}; // 追加: 記録に徒歩ゲームを足す
 // ======== 追加: v40.0 ここまで ========
+// ======== 追加: v41.0 床を可愛く＋目印オブジェをたくさん置く ========
+const FUN4100={on:(SET.route===9),objs:[],spin:[],bob:null}; // 追加: オブジェの状態
+if(FUN4100.on){ // 追加: パーク専用
+  const C=FUN3500.plaza,pg=scene.children.find(o=>o.name==='plaza3500'); // 追加: 参照
+  try{ // 追加: 床を可愛い柄にする
+    const cv=document.createElement('canvas');cv.width=1024;cv.height=1024;const g=cv.getContext('2d'); // 追加: 床の絵を描くキャンバス
+    g.fillStyle='#f7f1de';g.fillRect(0,0,1024,1024); // 追加: クリーム色の地
+    for(let i=0;i<16;i++)for(let j=0;j<16;j++){if((i+j)%2===0){g.fillStyle=(i%4<2)?'rgba(255,183,213,0.35)':'rgba(163,230,196,0.35)';g.fillRect(i*64,j*64,64,64);}} // 追加: パステルの市松模様
+    const dotCols=['#ff8fab','#ffd34d','#7fd8ff','#b197fc','#ffa94d']; // 追加: ドットの色
+    for(let i=0;i<260;i++){g.fillStyle=dotCols[i%5];g.globalAlpha=0.5;g.beginPath();g.arc(Math.random()*1024,Math.random()*1024,3+Math.random()*5,0,7);g.fill();}g.globalAlpha=1; // 追加: カラフルなドット
+    g.strokeStyle='#e9dcc0';g.lineWidth=46;g.beginPath();g.moveTo(512,1024);g.lineTo(512,512);g.lineTo(1024,512);g.moveTo(512,512);g.lineTo(0,512);g.stroke(); // 追加: 十字の小道
+    const rb=['#ff6b6b','#ffa94d','#ffd34d','#69db7c','#4dabf7','#b197fc'];rb.forEach((c2,i)=>{g.strokeStyle=c2;g.lineWidth=7;g.beginPath();g.arc(512,512,120+i*9,0,7);g.stroke();}); // 追加: 中心の虹の輪
+    const tex=new THREE.CanvasTexture(cv); // 追加: テクスチャ化
+    pg.traverse(n=>{if(n.isMesh&&n.geometry&&n.geometry.type==='BoxGeometry'&&n.geometry.parameters&&n.geometry.parameters.width>700){n.material=new THREE.MeshLambertMaterial({map:tex});}}); // 追加: 土地の床に貼る
+  }catch(e){} // 追加: 床柄ここまで
+  const sign=(x,z,txt,col)=>{const sg=new THREE.Group();const p1=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.09,1.6,6),LM(0x8a6d4b));p1.position.y=0.8;sg.add(p1);const bd=new THREE.Mesh(new THREE.PlaneGeometry(3.4,0.85),new THREE.MeshBasicMaterial({map:signTexture3100(txt,col,'#ffffff'),side:THREE.DoubleSide}));bd.position.y=1.9;sg.add(bd);sg.position.set(x,0.16,z);pg.add(sg);}; // 追加: 名前看板
+  const put=(grp,x,z,r)=>{grp.position.set(x,0.16,z);pg.add(grp);FUN4100.objs.push(grp);if(r)FUN3500.colliders.push({x:x,z:z,r:r});}; // 追加: 置く＋当たり判定
+  {const grp=new THREE.Group();const ped=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.6,1,10),LM(0xcfc4ae));ped.position.y=0.5;grp.add(ped); // 追加: 星のオブジェ
+   const sh=new THREE.Shape();for(let i=0;i<10;i++){const a=i/10*Math.PI*2-Math.PI/2,rr=i%2?1.1:2.6;const px=Math.cos(a)*rr,py=Math.sin(a)*rr;if(i===0)sh.moveTo(px,py);else sh.lineTo(px,py);}sh.closePath(); // 追加: 星の形
+   const star=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:0.6,bevelEnabled:false}),LM(0xffcf3f));star.position.set(0,1,0);star.rotation.y=0.5;grp.add(star);FUN4100.spin.push({o:star,sp:0.6});put(grp,C.x+300,C.z-300,2.8);sign(C.x+300,C.z-293,'ほし','#f59e0b');} // 追加: 星ここまで
+  {const grp=new THREE.Group();const ped=new THREE.Mesh(new THREE.CylinderGeometry(1.8,2.2,1,10),LM(0xcfc4ae));ped.position.y=0.5;grp.add(ped); // 追加: ハートのオブジェ
+   const h1=new THREE.Mesh(new THREE.SphereGeometry(1.15,10,8),LM(0xff6b9d));h1.position.set(-0.95,3.1,0);grp.add(h1);const h2=h1.clone();h2.position.x=0.95;grp.add(h2); // 追加: ハートの丸み
+   const tip=new THREE.Mesh(new THREE.ConeGeometry(1.85,2.6,4),LM(0xff6b9d));tip.position.y=1.55;tip.rotation.x=Math.PI;tip.rotation.y=Math.PI/4;tip.scale.z=0.45;grp.add(tip);put(grp,C.x-300,C.z+260,2.4);sign(C.x-293,C.z+260,'ハート','#ec4899');} // 追加: ハートここまで
+  {const grp=new THREE.Group();const stem=new THREE.Mesh(new THREE.CylinderGeometry(0.85,1.15,2.1,10),LM(0xfff6e5));stem.position.y=1.05;grp.add(stem); // 追加: キノコ
+   const cap=new THREE.Mesh(new THREE.SphereGeometry(2.5,12,8,0,Math.PI*2,0,Math.PI/2),LM(0xef4444));cap.position.y=2.1;cap.scale.y=0.75;grp.add(cap); // 追加: 赤い傘
+   [[0.9,3.3,0.9],[-1.1,3.1,-0.6],[0.2,3.8,-1.2],[-0.5,3.5,1.3]].forEach(d2=>{const w=new THREE.Mesh(new THREE.SphereGeometry(0.32,6,5),LM(0xffffff));w.position.set(d2[0],d2[1],d2[2]);grp.add(w);});put(grp,C.x+150,C.z+300,2.6);sign(C.x+157,C.z+300,'キノコ','#ef4444');} // 追加: キノコここまで
+  {const grp=new THREE.Group();const body=new THREE.Mesh(new THREE.CylinderGeometry(1.05,1.25,5,12),LM(0xf8fafc));body.position.y=3.4;grp.add(body); // 追加: ロケット
+   const nose=new THREE.Mesh(new THREE.ConeGeometry(1.05,2.1,12),LM(0xef4444));nose.position.y=6.95;grp.add(nose); // 追加: 先端
+   const win=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.42,0.2,10),LM(0x2563eb));win.rotation.x=Math.PI/2;win.position.set(0,4.4,1.12);grp.add(win); // 追加: 窓
+   for(let i=0;i<3;i++){const a=i/3*Math.PI*2;const fin=new THREE.Mesh(new THREE.BoxGeometry(0.18,1.9,1.1),LM(0xef4444));fin.position.set(Math.sin(a)*1.35,1.1,Math.cos(a)*1.35);fin.rotation.y=a;grp.add(fin);} // 追加: 羽
+   put(grp,C.x-320,C.z+60,2.2);sign(C.x-313,C.z+60,'ロケット','#3b82f6');} // 追加: ロケットここまで
+  {const grp=new THREE.Group();const cone=new THREE.Mesh(new THREE.ConeGeometry(1.5,3.4,12),LM(0xd9a05b));cone.position.y=1.7;cone.rotation.x=Math.PI;grp.add(cone); // 追加: アイス
+   const s1=new THREE.Mesh(new THREE.SphereGeometry(1.45,12,10),LM(0xffa8c5));s1.position.y=3.9;grp.add(s1);const s2=new THREE.Mesh(new THREE.SphereGeometry(1.05,12,10),LM(0xb2f2bb));s2.position.y=5.3;grp.add(s2); // 追加: 2段スクープ
+   const ch2=new THREE.Mesh(new THREE.SphereGeometry(0.34,8,6),LM(0xe03131));ch2.position.y=6.4;grp.add(ch2);put(grp,C.x+320,C.z+240,2.2);sign(C.x+320,C.z+247,'アイス','#f472b6');} // 追加: アイスここまで
+  {const grp=new THREE.Group();const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.45,7.5,8),LM(0xa07840));pole.position.y=3.75;grp.add(pole); // 追加: 風車
+   const blades=new THREE.Group();for(let i=0;i<4;i++){const bl=new THREE.Mesh(new THREE.BoxGeometry(0.7,3.6,0.12),LM(0xfff3bf));bl.position.y=1.9;const holder=new THREE.Group();holder.rotation.z=i*Math.PI/2;holder.add(bl);blades.add(holder);}blades.position.set(0,7.5,0.6);grp.add(blades);FUN4100.spin.push({o:blades,sp:1.4,axis:'z'});put(grp,C.x-60,C.z-330,1.8);sign(C.x-53,C.z-330,'かざぐるま','#eab308');} // 追加: 風車ここまで
+  {const grp=new THREE.Group();const base=new THREE.Mesh(new THREE.ConeGeometry(4.6,5,4),LM(0xe8c47c));base.position.y=2.5;base.rotation.y=Math.PI/4;grp.add(base);put(grp,C.x+340,C.z-40,4.4);sign(C.x+340,C.z-32,'ピラミッド','#d97706');} // 追加: ピラミッド
+  {const grp=new THREE.Group();const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.14,0.14,4.6,6),LM(0xffffff));pole.position.y=2.3;grp.add(pole); // 追加: ペロペロキャンディ
+   const disc=new THREE.Mesh(new THREE.CylinderGeometry(1.7,1.7,0.35,16),LM(0xff8fab));disc.rotation.x=Math.PI/2;disc.position.y=5.2;grp.add(disc);const disc2=new THREE.Mesh(new THREE.CylinderGeometry(1.0,1.0,0.37,16),LM(0xffffff));disc2.rotation.x=Math.PI/2;disc2.position.y=5.2;grp.add(disc2);put(grp,C.x+60,C.z+60,1);sign(C.x+66,C.z+60,'キャンディ','#fb7185');} // 追加: キャンディここまで
+  const treeAt=(x,z,col,txt)=>{const grp=new THREE.Group();const tr=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.5,2.6,7),LM(0x8a5a33));tr.position.y=1.3;grp.add(tr);[[0,4.6,0,1.9],[1.3,3.8,0.5,1.4],[-1.2,3.9,-0.4,1.3]].forEach(b2=>{const lf=new THREE.Mesh(new THREE.SphereGeometry(b2[3],10,8),LM(col));lf.position.set(b2[0],b2[1],b2[2]);grp.add(lf);});put(grp,x,z,1.1);if(txt)sign(x+6,z,txt,'#22c55e');}; // 追加: 大きな木
+  treeAt(C.x+120,C.z-180,0xffb7d5,'さくら');treeAt(C.x-160,C.z+140,0xff922b,'もみじ');treeAt(C.x+240,C.z+330,0x51cf66,'');treeAt(C.x-260,C.z-160,0x51cf66,''); // 追加: 木を4本
+  {const grp=new THREE.Group();const env=new THREE.Mesh(new THREE.SphereGeometry(3.1,14,12),LM(0xff6b6b));env.scale.y=1.15;grp.add(env); // 追加: 気球
+   const bk=new THREE.Mesh(new THREE.BoxGeometry(1.3,1.1,1.3),LM(0xa07840));bk.position.y=-4.4;grp.add(bk);grp.position.set(C.x,26,C.z-80);pg.add(grp);FUN4100.bob={o:grp,x:C.x,z:C.z-80,y:26};FUN4100.objs.push(grp);} // 追加: 気球ここまで
+} // 追加: オブジェ配置ここまで
+function funStep4100(dt){ // 追加: オブジェのアニメ
+  if(!FUN4100.on)return; // 追加: 条件
+  const t=performance.now()*0.001; // 追加: 時刻
+  for(const s of FUN4100.spin){if(s.axis==='z')s.o.rotation.z+=dt*s.sp;else s.o.rotation.y+=dt*s.sp;} // 追加: 回す
+  if(FUN4100.bob){const b=FUN4100.bob;b.o.position.y=b.y+Math.sin(t*0.7)*1.4;b.o.position.x=b.x+Math.cos(t*0.11)*7;b.o.position.z=b.z+Math.sin(t*0.09)*7;} // 追加: 気球を漂わせる
+} // 追加: アニメここまで
+const _pedStep4100=pedStep;pedStep=function(dt){const r=_pedStep4100.apply(this,arguments);try{funStep4100(dt);}catch(e){}return r;}; // 追加: 毎フレーム呼ぶ
+// ======== 追加: v41.0 ここまで ========
 applyQual();go('main');layout();requestAnimationFrame(loop);
 setTimeout(netAutoRejoin,1200); // 追加: オンライン切替でのリロードなら部屋へ自動で戻る
 })();
